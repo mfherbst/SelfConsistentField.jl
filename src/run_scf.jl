@@ -1,7 +1,7 @@
 
 # TODO Find a way to ge the print statements out
 function run_scf(problem::ScfProblem, guess_density::AbstractArray;
-		 max_iter=100, damping_max_error_norm=1e-3,
+		 max_iter=100, damping_max_error_norm=1e-2,
 		 kwargs...)
 	# Setup accelerators and SCF-global objects
 	damping = FixedDamping(problem; kwargs...)
