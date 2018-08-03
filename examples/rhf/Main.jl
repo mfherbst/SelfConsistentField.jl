@@ -31,7 +31,6 @@ guess_density = compute_guess_hcore(problem, system.coords, system.atom_numbers)
 params = Dict(
 	:max_error_norm=>5e-7,
 	:max_energy_total_change=>1.25e-07,
-	:max_iter=>45,
 )
 res = run_scf(problem, guess_density; params...)
 
