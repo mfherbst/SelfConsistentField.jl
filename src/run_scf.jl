@@ -1,6 +1,7 @@
 # TODO Find a way to get the print statements out
 function run_scf(problem::ScfProblem, guess_density::AbstractArray;
 		 max_iter=100, damping_max_error_norm=1e-2,
+		 damping_max_energy_total_change=0.0025,
 		 kwargs...)
 	# Setup accelerators and SCF-global objects
 	damping = FixedDamping(problem; kwargs...)
@@ -26,7 +27,10 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
 		# If converged end iteration
 		if scfconv.is_converged break end
 
-		if scfconv.error_norm < damping_max_error_norm && ! isa(damping, Void)
+		remove_damping = (scfconv.error_norm < damping_max_error_norm
+				  || abs(scfconv.energy_change["energy_total"])
+				  < damping_max_energy_total_change)
+		if remove_damping && ! isa(damping, Void)
 			println("  ... removing any damping ... ")
 			iterate = postprocess_iterate(damping, iterate)
 			damping = nothing

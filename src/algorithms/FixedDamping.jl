@@ -14,12 +14,13 @@ function compute_next_iterate(acc::FixedDamping, iterate::ScfIterState)
 	if ! isa(acc.prev_iterate, Void)
 		prev_mat = get_iterate_matrix(acc.prev_iterate)
 		cur_mat = get_iterate_matrix(iterate)
-
+		damp = acc.damping
 		ret = (1 - damp) * prev_mat + damp * cur_mat
 		iterate = update_iterate_matrix(iterate, ret)
 		acc.prev_iterate = iterate
 		return iterate
 	else
+		acc.prev_iterate = iterate
 		return iterate
 	end
 end
