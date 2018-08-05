@@ -4,8 +4,9 @@ and the atoms described by atom numbers and coords.
 
 The coords array should be an array of size (n_atoms, 3)
 
-The returned density is only the spatial part, i.e.
-of size (n_bas, n_bas) and makes no difference between alpha and beta components.
+The returned density is of the form expected for the ScfProblem,
+i.e. only has a single spin component for restricted-closed SCF,
+but two for unrestricted SCF or restricted-open-shell SCF.
 """
 function compute_guess_hcore(problem::ScfProblem,
 		             coords::Array{Float64, 2},

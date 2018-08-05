@@ -1,3 +1,4 @@
+# TODO Output as in molsturm
 # TODO Find a way to get the print statements out
 function run_scf(problem::ScfProblem, guess_density::AbstractArray;
 		 max_iter=100, damping_max_error_norm=1e-2,

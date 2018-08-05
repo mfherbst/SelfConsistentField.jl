@@ -51,13 +51,15 @@ function SelfConsistentField.compute_fock(
 	energy_two_elec = trace(JKa * Da) # * 2 / 2
 	energy_one_elec = 2 * trace(Hcore * Da)
 
-	# Build alpha fock matrix and alpha error
-	focka = JKa + Hcore
-	errora = S * Da * focka - focka * Da * S
+	# Build alpha Fock matrix and error matrix
+	focka = Hcore + JKa
+	error = 2 * (S * Da * focka - focka * Da * S)
+	# Factor 2 is used in the error, since both Fock matrix and density
+	# are actually present identially in the beta block as well
 
-	# Reshape to the expected shapes (with 1 spin component)
+	# Reshape both into expected shape
+	error = reshape(error, (n_bas, n_bas, 1))
 	fock = reshape(focka, (n_bas, n_bas, 1))
-	error = reshape(errora, (n_bas, n_bas, 1))
 
 	total = energy_one_elec + energy_two_elec + problem.energy_nuc_rep
 	energies = Dict("energy_1e"=> energy_one_elec,

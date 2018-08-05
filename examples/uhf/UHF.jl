@@ -1,5 +1,6 @@
 using SelfConsistentField
 include("UnrestrictedProblem.jl")
+include("RestrictedOpenProblem.jl")
 include("../common/Setup.jl")
 
 if length(ARGS) != 1
@@ -9,9 +10,20 @@ end
 intfile = ARGS[1]
 system, integrals = read_hdf5(intfile)
 
-println()
-println("Running unrestricted SCF for $intfile")
-println()
+ProbType = UnrestrictedProblem
+if contains(PROGRAM_FILE, "ROHF")
+	ProbType = RestrictedOpenProblem
+	println()
+	println("Running restricted-open SCF for $intfile")
+	println()
+	println(" ------------------------------------------------------------- ")
+	println("  WARNING: ROHF not properly tested .... do not trust results  ")
+	println(" ------------------------------------------------------------- ")
+else
+	println()
+	println("Running unrestricted SCF for $intfile")
+	println()
+end
 
 n_bas = size(integrals.electron_repulsion_bbbb)[1]
 n_occ_a = system.nelecs[1]
@@ -23,15 +35,15 @@ println("Nbas: $n_bas    nocca: $n_occ_a    noccb: $n_occ_b")
 ene_nuc_rep = compute_nuclear_repulsion(system)
 println("Nuclear repulsion energy: $ene_nuc_rep")
 
-problem = UnrestrictedProblem(
+problem = ProbType(
 	ene_nuc_rep,
 	integrals.kinetic_bb + integrals.nuclear_attraction_bb,
 	integrals.electron_repulsion_bbbb,
 	integrals.overlap_bb, n_occ, n_bas)
+assert(n_occ_a >= n_occ_b)
 
 # Compute HCore guess density and duplicate it on the spin components
 guess_density = compute_guess_hcore(problem, system.coords, system.atom_numbers)
-guess_density = cat(3, guess_density, guess_density)
 
 # Break the symmetry in alpha and beta densities by adding a random diagonal
 guess_diagonal = 1e-3 * randn(n_bas)
