@@ -1,5 +1,4 @@
-
-# TODO Find a way to ge the print statements out
+# TODO Find a way to get the print statements out
 function run_scf(problem::ScfProblem, guess_density::AbstractArray;
 		 max_iter=100, damping_max_error_norm=1e-2,
 		 kwargs...)
@@ -12,7 +11,7 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
 	iterate = FockIterState(fock, error, energies, nothing, nothing)
 	iterate = compute_next_iterate(damping, iterate)
 
-	println("iter      etot         echange")
+	println("iter      etot         echange     error norm")
 	for i in 1:max_iter
 		newiterate = roothan_step(problem, iterate; kwargs...)
 

@@ -65,11 +65,19 @@ function read_hdf5(file)
 end
 
 function print_energies(problem, integrals, res)
-	D = res["density"]
+	_, _, n_spin = size(res["density"])
+
+	# Alpha density
+	Da = view(res["density"], :, :, 1)
+	Db = if n_spin == 1 Da else view(res["density"], :, :, 2) end
+
+	# Compute energies
+	# TODO This should live somewhere else
+	Ekin = trace(Da * integrals.kinetic_bb) + trace(Db * integrals.kinetic_bb)
+	Enucattr = (trace(Da * integrals.nuclear_attraction_bb)
+		    + trace(Db * integrals.nuclear_attraction_bb))
 
 	println("Final energies")
-	Ekin = 2 * trace(D * integrals.kinetic_bb)
-	Enucattr = 2 * trace(D * integrals.nuclear_attraction_bb)
 	println("kinetic            ", Ekin)
 	println("nuclear_attraction ", Enucattr)
 	println("nuclear_repulsion  ", problem.energy_nuc_rep)
@@ -82,9 +90,10 @@ function print_energies(problem, integrals, res)
 	println("E electronic       ", e1e + e2e)
 
 	println()
-	println("E_pot              ", Enucattr + e2e)
+	Epot = Enucattr + e2e + problem.energy_nuc_rep
+	println("E_pot              ", Epot)
 	println("E_kin              ", Ekin)
-	println("virial ratio       ", -(Enucattr + e2e) / Ekin)
+	println("virial ratio       ", -Epot / Ekin)
 
 	println()
 	println("E_total            ", res["energies"]["energy_total"])
