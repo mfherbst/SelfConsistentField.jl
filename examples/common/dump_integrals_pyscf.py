@@ -8,7 +8,9 @@ import numpy as np
 mol = pyscf.gto.Mole()
 mol.unit = "Bohr"
 mol.atom = [
-    ("Ar", [0, 0, 0]),
+    ("O", [0, 0, 0]),
+    ("H", [0, 0, 1.795239827225189]),
+    ("H", [1.693194615993441, 0, -0.599043184453037]),
 ]
 mol.basis = "cc-pvqz"
 mol.spin = 0  # singlet
