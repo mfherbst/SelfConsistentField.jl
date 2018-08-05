@@ -100,14 +100,21 @@ function print_energies(problem, integrals, res)
 end
 
 function print_mo_occupation(problem, res)
+	n_orb, n_spin = size(res["orben"])
+
 	println("Orbital occupation")
 	println("a                             b")
-	for i in 1:length(res["orben"])
+	for i in 1:n_orb
 		aocc = bocc = " "
-		if i <= problem.n_occ
-			aocc = bocc = "*"
+		if i <= problem.n_occ[1] aocc = "*" end
+		if i <= problem.n_occ[2] bocc = "*" end
+		if n_spin == 1
+			ene = res["orben"][i]
+			println("$aocc       $ene       $bocc")
+		else
+			enea = res["orben"][i, 1]
+			eneb = res["orben"][i, 2]
+			println("$aocc       $enea    |    $eneb       $bocc")
 		end
-		ene = res["orben"][i]
-		println("$aocc     $ene       $bocc")
 	end
 end
