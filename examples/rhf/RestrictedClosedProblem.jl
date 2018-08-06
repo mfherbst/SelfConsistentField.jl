@@ -1,5 +1,5 @@
 using TensorOperations
-# using LinearAlgebra  v0.7.0
+using LinearAlgebra: tr
 
 struct RestrictedClosedProblem <: ScfProblem
 	# This struct defines the SCF problem to be solved
@@ -40,7 +40,9 @@ function SelfConsistentField.compute_fock(
 	S = problem.overlap
 
 	# Extract the alpha density
-	assert(size(density) == (n_bas, n_bas, 1))
+	@assert size(density) == (n_bas, n_bas, 1) begin
+		"density should be square with one spin component"
+	end
 	Da = view(density, :,:,1)
 
 	# Compute J + K matrix
@@ -48,8 +50,8 @@ function SelfConsistentField.compute_fock(
 
 	# Because we restrict ourselves to the alpha block, the acutal
 	# energy is be twice the trace. For the 2e energy this cancels the factor 1/2
-	energy_two_elec = trace(JKa * Da) # * 2 / 2
-	energy_one_elec = 2 * trace(Hcore * Da)
+	energy_two_elec = tr(JKa * Da) # * 2 / 2
+	energy_one_elec = 2 * tr(Hcore * Da)
 
 	# Build alpha Fock matrix and error matrix
 	focka = Hcore + JKa

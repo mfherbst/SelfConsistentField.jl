@@ -1,5 +1,8 @@
 module SelfConsistentField
 
+using LinearAlgebra: norm, Hermitian, eigen
+using TensorOperations
+
 export run_scf, ScfProblem, compute_guess_hcore
 
 include("types/ScfIterState.jl")

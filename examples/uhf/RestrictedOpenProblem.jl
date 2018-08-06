@@ -1,5 +1,5 @@
 using TensorOperations
-# using LinearAlgebra  v0.7.0
+using LinearAlgebra: tr, I
 
 struct RestrictedOpenProblem <: ScfProblem
 	# This struct defines the SCF problem to be solved
@@ -53,7 +53,7 @@ function build_roothaan_effective_fock(fock_ab, density_ab, overlap)
 	# Projectors for closed-shell, open-shell and virtual spaces
 	Pc = Db * S
 	Po = (Da - Db) * S
-	Pv = eye(n_bas) - Da * S
+	Pv = I - Da * S
 
 	# Now build the effective Fock matrix. The idea is to
 	# build the lower triangle only and than use the hermitian
@@ -91,13 +91,13 @@ function SelfConsistentField.compute_fock(
 	S = problem.overlap
 
 	# Extract the alpha and beta density
-	assert(size(density) == (n_bas, n_bas, 2))
+	@assert size(density) == (n_bas, n_bas, 2)
 	Da = view(density, :,:,1)
 	Db = view(density, :,:,2)
 
-	assert(size(Da) == (n_bas, n_bas))
-	assert(size(Db) == (n_bas, n_bas))
-	assert(size(eri) == (n_bas, n_bas, n_bas, n_bas))
+	@assert size(Da) == (n_bas, n_bas)
+	@assert size(Db) == (n_bas, n_bas)
+	@assert size(eri) == (n_bas, n_bas, n_bas, n_bas)
 
 	# Compute J, Ka and Kb matrices
 	@tensor begin
@@ -107,8 +107,8 @@ function SelfConsistentField.compute_fock(
 	end
 	J = 0  # Free memory in J
 
-	energy_two_elec = 1/2 * (trace(JKa * Da) + trace(JKb * Db))
-	energy_one_elec = trace(Hcore * Da) + trace(Hcore * Db)
+	energy_two_elec = 1/2 * (tr(JKa * Da) + tr(JKb * Db))
+	energy_one_elec = tr(Hcore * Da) + tr(Hcore * Db)
 
 	# Build alpha and beta fock matrix and transform to MO
 	focka = Hcore + JKa

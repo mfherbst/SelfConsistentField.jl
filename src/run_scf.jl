@@ -31,7 +31,7 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
 		remove_damping = (scfconv.error_norm < damping_max_error_norm
 				  || abs(scfconv.energy_change["energy_total"])
 				  < damping_max_energy_total_change)
-		if remove_damping && ! isa(damping, Void)
+		if remove_damping && damping != nothing
 			println("  ... removing any damping ... ")
 			iterate = postprocess_iterate(damping, iterate)
 			damping = nothing

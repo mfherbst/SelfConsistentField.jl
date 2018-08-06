@@ -1,4 +1,5 @@
 using SelfConsistentField
+using LinearAlgebra: diagm
 include("UnrestrictedProblem.jl")
 include("RestrictedOpenProblem.jl")
 include("../common/Setup.jl")
@@ -11,7 +12,7 @@ intfile = ARGS[1]
 system, integrals = read_hdf5(intfile)
 
 ProbType = UnrestrictedProblem
-if contains(PROGRAM_FILE, "ROHF")
+if occursin("ROHF", PROGRAM_FILE)
 	ProbType = RestrictedOpenProblem
 	println()
 	println("Running restricted-open SCF for $intfile")
@@ -40,15 +41,17 @@ problem = ProbType(
 	integrals.kinetic_bb + integrals.nuclear_attraction_bb,
 	integrals.electron_repulsion_bbbb,
 	integrals.overlap_bb, n_occ, n_bas)
-assert(n_occ_a >= n_occ_b)
+@assert n_occ_a >= n_occ_b begin
+	"Number of alpha electrons should be larger than number of beta electrons"
+end
 
 # Compute HCore guess density and duplicate it on the spin components
 guess_density = compute_guess_hcore(problem, system.coords, system.atom_numbers)
 
 # Break the symmetry in alpha and beta densities by adding a random diagonal
 guess_diagonal = 1e-3 * randn(n_bas)
-guess_density[:, :, 1] += diagm(guess_diagonal)
-guess_density[:, :, 2] -= diagm(guess_diagonal)
+guess_density[:, :, 1] += diagm(0 => guess_diagonal)
+guess_density[:, :, 2] -= diagm(0 => guess_diagonal)
 
 params = Dict(
 	:max_error_norm=>5e-7,

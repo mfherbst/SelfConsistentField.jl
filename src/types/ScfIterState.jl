@@ -18,8 +18,8 @@ struct FockIterState <: ScfIterState
 	energies::Dict{String, Float64}
 
 	# Orbital coefficients and energies
-	orbcoeff::Union{Void,AbstractArray}
-	orben::Union{Void,AbstractArray}
+	orbcoeff::Union{Nothing,AbstractArray}
+	orben::Union{Nothing,AbstractArray}
 end
 
 function get_iterate_matrix(iterate::FockIterState)

@@ -12,7 +12,7 @@ function compute_guess_hcore(problem::ScfProblem,
 		             coords::Array{Float64, 2},
 			     atom_numbers::Array{Float64, 1}; kwargs...)
 	n_bas, _ = size(problem.Hcore)
-	assert(size(problem.Hcore) == (n_bas, n_bas))
+	@assert size(problem.Hcore) == (n_bas, n_bas) "Hcore should be a square matrix."
 	Fcore = reshape(problem.Hcore, n_bas, n_bas, 1)
 
 	# Compute the orbitals by diagonalising Hcore

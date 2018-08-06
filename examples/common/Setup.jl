@@ -1,4 +1,5 @@
 using HDF5
+using LinearAlgebra: norm, tr
 
 struct Integrals
 	kinetic_bb
@@ -73,9 +74,9 @@ function print_energies(problem, integrals, res)
 
 	# Compute energies
 	# TODO This should live somewhere else
-	Ekin = trace(Da * integrals.kinetic_bb) + trace(Db * integrals.kinetic_bb)
-	Enucattr = (trace(Da * integrals.nuclear_attraction_bb)
-		    + trace(Db * integrals.nuclear_attraction_bb))
+	Ekin = tr(Da * integrals.kinetic_bb) + tr(Db * integrals.kinetic_bb)
+	Enucattr = (tr(Da * integrals.nuclear_attraction_bb)
+		    + tr(Db * integrals.nuclear_attraction_bb))
 
 	println("Final energies")
 	println("kinetic            ", Ekin)
