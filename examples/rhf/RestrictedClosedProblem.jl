@@ -44,7 +44,7 @@ function SelfConsistentField.compute_fock(
 	Da = view(density, :,:,1)
 
 	# Compute J + K matrix
-	@tensoropt JKa[μ,ν] := eri[α,β,μ,ν] * 2 * Da[α,β] - eri[μ,β,α,ν] * Da[α,β]
+	@tensor JKa[μ,ν] := eri[μ,ν,κ,λ] * 2 * Da[κ,λ] - eri[κ,ν,μ,λ] * Da[κ,λ]
 
 	# Because we restrict ourselves to the alpha block, the acutal
 	# energy is be twice the trace. For the 2e energy this cancels the factor 1/2

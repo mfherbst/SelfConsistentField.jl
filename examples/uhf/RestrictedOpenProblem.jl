@@ -95,9 +95,13 @@ function SelfConsistentField.compute_fock(
 	Da = view(density, :,:,1)
 	Db = view(density, :,:,2)
 
+	assert(size(Da) == (n_bas, n_bas))
+	assert(size(Db) == (n_bas, n_bas))
+	assert(size(eri) == (n_bas, n_bas, n_bas, n_bas))
+
 	# Compute J, Ka and Kb matrices
 	@tensor begin
-		J[μ,ν] := eri[α,β,μ,ν] * (Da[α,β] + Db[α,β])
+		J[μ,ν] := eri[α,β,μ,ν] * Da[α,β] + eri[α,β,μ,ν] * Db[α,β]
 		JKa[μ,ν] := J[μ,ν] - eri[μ,β,α,ν] * Da[α,β]
 		JKb[μ,ν] := J[μ,ν] - eri[μ,β,α,ν] * Db[α,β]
 	end
