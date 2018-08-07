@@ -1,4 +1,5 @@
-# TODO Output as in molsturm
+using Printf
+
 # TODO Find a way to get the print statements out
 function run_scf(problem::ScfProblem, guess_density::AbstractArray;
                  max_iter=100, damping_max_error_norm=1e-2,
@@ -11,19 +12,26 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
     # Build initial iterate
     fock, error, energies = compute_fock(problem, guess_density; kwargs...)
     iterate = FockIterState(fock, error, energies, nothing, nothing)
-    iterate = compute_next_iterate(damping, iterate)
 
-    println("iter      etot         echange     error norm")
+    @printf("%5s %14s %14s %14s %15s %12s\n",
+            "iter", "e1e", "e2e", "etot", "scf_error", "n_applies")
     for i in 1:max_iter
+        # Extrapolate next iterate
+        iterate = compute_next_iterate(damping, iterate)
+
+        # and perform a step to progress
         newiterate = roothan_step(problem, iterate; kwargs...)
+        n_applies = NaN # Number of applies of the fock matrix, which was required
 
         # Compute convergence state
         scfconv = check_convergence(iterate, newiterate; kwargs...)
 
         # Print current status
-        print("$i   ", newiterate.energies["energy_total"], "   ")
-        print(scfconv.energy_change["energy_total"], "   ")
-        println(scfconv.error_norm)
+        energies = newiterate.energies
+        @printf(" %4d %14.8f %14.8f %14.8f %15.9g %12d\n",
+                i, energies["energy_1e"], energies["energy_2e"],
+                energies["energy_total"], scfconv.error_norm,
+                n_applies)
 
         # If converged end iteration
         if scfconv.is_converged break end
@@ -32,13 +40,10 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
                           || abs(scfconv.energy_change["energy_total"])
                           < damping_max_energy_total_change)
         if remove_damping && damping != nothing
-            println("  ... removing any damping ... ")
-            iterate = postprocess_iterate(damping, iterate)
+            println(repeat(" ", 18), "**** Removing any damping ****")
             damping = nothing
         end
-
-        # Else extrapolate next iterate
-        iterate = compute_next_iterate(damping, newiterate)
+        iterate = newiterate
     end
 
     # Return results
