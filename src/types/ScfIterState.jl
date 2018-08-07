@@ -8,26 +8,26 @@ abstract type ScfIterState end
 Struct of the state if the Fock matrix is iterated
 """
 struct FockIterState <: ScfIterState
-	# Fock or Kohn-Sham matrix
-	fock::AbstractArray
+    # Fock or Kohn-Sham matrix
+    fock::AbstractArray
 
-	# Matrix describing the error in fock
-	error::AbstractArray
+    # Matrix describing the error in fock
+    error::AbstractArray
 
-	# Named tuple or dict of the computed energy terms
-	energies::Dict{String, Float64}
+    # Named tuple or dict of the computed energy terms
+    energies::Dict{String, Float64}
 
-	# Orbital coefficients and energies
-	orbcoeff::Union{Nothing,AbstractArray}
-	orben::Union{Nothing,AbstractArray}
+    # Orbital coefficients and energies
+    orbcoeff::Union{Nothing,AbstractArray}
+    orben::Union{Nothing,AbstractArray}
 end
 
 function get_iterate_matrix(iterate::FockIterState)
-	return iterate.fock
+    return iterate.fock
 end
 
 function update_iterate_matrix(iterate::FockIterState, fock::AbstractArray)
-	return FockIterState(fock, iterate.error, iterate.energies,
-			     iterate.orbcoeff, iterate.orben)
+    return FockIterState(fock, iterate.error, iterate.energies,
+                         iterate.orbcoeff, iterate.orben)
 end
 

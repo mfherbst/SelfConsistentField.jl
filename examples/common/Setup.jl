@@ -2,25 +2,25 @@ using HDF5
 using LinearAlgebra: norm, tr
 
 struct Integrals
-	kinetic_bb
-	nuclear_attraction_bb
-	overlap_bb
-	electron_repulsion_bbbb
+    kinetic_bb
+    nuclear_attraction_bb
+    overlap_bb
+    electron_repulsion_bbbb
 end
 
 """
 Struct describing a system to be modelled
 """
 struct System
-	# Coordinates of the atoms, as array
-	# n_atoms times 3
-	coords::Array{Float64, 2}
+    # Coordinates of the atoms, as array
+    # n_atoms times 3
+    coords::Array{Float64, 2}
 
-	# Atom numbers
-	atom_numbers::Array{Float64, 1}
+    # Atom numbers
+    atom_numbers::Array{Float64, 1}
 
-	# Number of electrons
-	nelecs::Array{Int, 1}  #Tuple: alpha, beta
+    # Number of electrons
+    nelecs::Array{Int, 1}  #Tuple: alpha, beta
 end
 
 
@@ -28,94 +28,94 @@ end
 Compute nuclear repulsion energy
 """
 function compute_nuclear_repulsion(system)
-	sum = 0
-	for (A, ZA) in enumerate(system.atom_numbers)
-		for B in 1:A-1
-			dist = norm(system.coords[A, :] - system.coords[B, :])
-			ZB = system.atom_numbers[B]
-			sum += ZA * ZB / dist
-		end
-	end
-	return sum
+    sum = 0
+    for (A, ZA) in enumerate(system.atom_numbers)
+        for B in 1:A-1
+            dist = norm(system.coords[A, :] - system.coords[B, :])
+            ZB = system.atom_numbers[B]
+            sum += ZA * ZB / dist
+        end
+    end
+    return sum
 end
 
 """
 Read an hdf5 file
 """
 function read_hdf5(file)
-	file = h5open(file)
+    file = h5open(file)
 
-	eri = read(file, "electron_repulsion_bbbb")
-	T = read(file,"kinetic_bb")
-	V = read(file,"nuclear_attraction_bb")
-	S = read(file,"overlap_bb")
+    eri = read(file, "electron_repulsion_bbbb")
+    T = read(file,"kinetic_bb")
+    V = read(file,"nuclear_attraction_bb")
+    S = read(file,"overlap_bb")
 
-	nelec = read(file,"system/nelec")
-	atnums = read(file, "system/atom_numbers")
-	coords = read(file, "system/coords")
+    nelec = read(file,"system/nelec")
+    atnums = read(file, "system/atom_numbers")
+    coords = read(file, "system/coords")
 
-	close(file)
+    close(file)
 
-	# coordinates need to be transformed from row-major
-	# to column-major
-	coords = coords'
+    # coordinates need to be transformed from row-major
+    # to column-major
+    coords = coords'
 
-	system = System(coords, atnums, nelec)
-	integrals = Integrals(T, V, S, eri)
-	return system, integrals
+    system = System(coords, atnums, nelec)
+    integrals = Integrals(T, V, S, eri)
+    return system, integrals
 end
 
 function print_energies(problem, integrals, res)
-	_, _, n_spin = size(res["density"])
+    _, _, n_spin = size(res["density"])
 
-	# Alpha density
-	Da = view(res["density"], :, :, 1)
-	Db = if n_spin == 1 Da else view(res["density"], :, :, 2) end
+    # Alpha density
+    Da = view(res["density"], :, :, 1)
+    Db = if n_spin == 1 Da else view(res["density"], :, :, 2) end
 
-	# Compute energies
-	# TODO This should live somewhere else
-	Ekin = tr(Da * integrals.kinetic_bb) + tr(Db * integrals.kinetic_bb)
-	Enucattr = (tr(Da * integrals.nuclear_attraction_bb)
-		    + tr(Db * integrals.nuclear_attraction_bb))
+    # Compute energies
+    # TODO This should live somewhere else
+    Ekin = tr(Da * integrals.kinetic_bb) + tr(Db * integrals.kinetic_bb)
+    Enucattr = (tr(Da * integrals.nuclear_attraction_bb)
+                + tr(Db * integrals.nuclear_attraction_bb))
 
-	println("Final energies")
-	println("kinetic            ", Ekin)
-	println("nuclear_attraction ", Enucattr)
-	println("nuclear_repulsion  ", problem.energy_nuc_rep)
-	println()
+    println("Final energies")
+    println("kinetic            ", Ekin)
+    println("nuclear_attraction ", Enucattr)
+    println("nuclear_repulsion  ", problem.energy_nuc_rep)
+    println()
 
-	e1e = res["energies"]["energy_1e"]
-	e2e = res["energies"]["energy_2e"]
-	println("E_1e               ", e1e)
-	println("E_2e               ", e2e)
-	println("E electronic       ", e1e + e2e)
+    e1e = res["energies"]["energy_1e"]
+    e2e = res["energies"]["energy_2e"]
+    println("E_1e               ", e1e)
+    println("E_2e               ", e2e)
+    println("E electronic       ", e1e + e2e)
 
-	println()
-	Epot = Enucattr + e2e + problem.energy_nuc_rep
-	println("E_pot              ", Epot)
-	println("E_kin              ", Ekin)
-	println("virial ratio       ", -Epot / Ekin)
+    println()
+    Epot = Enucattr + e2e + problem.energy_nuc_rep
+    println("E_pot              ", Epot)
+    println("E_kin              ", Ekin)
+    println("virial ratio       ", -Epot / Ekin)
 
-	println()
-	println("E_total            ", res["energies"]["energy_total"])
+    println()
+    println("E_total            ", res["energies"]["energy_total"])
 end
 
 function print_mo_occupation(problem, res)
-	n_orb, n_spin = size(res["orben"])
+    n_orb, n_spin = size(res["orben"])
 
-	println("Orbital occupation")
-	println("a                             b")
-	for i in 1:n_orb
-		aocc = bocc = " "
-		if i <= problem.n_occ[1] aocc = "*" end
-		if i <= problem.n_occ[2] bocc = "*" end
-		if n_spin == 1
-			ene = res["orben"][i]
-			println("$aocc       $ene       $bocc")
-		else
-			enea = res["orben"][i, 1]
-			eneb = res["orben"][i, 2]
-			println("$aocc       $enea    |    $eneb       $bocc")
-		end
-	end
+    println("Orbital occupation")
+    println("a                             b")
+    for i in 1:n_orb
+        aocc = bocc = " "
+        if i <= problem.n_occ[1] aocc = "*" end
+        if i <= problem.n_occ[2] bocc = "*" end
+        if n_spin == 1
+            ene = res["orben"][i]
+            println("$aocc       $ene       $bocc")
+        else
+            enea = res["orben"][i, 1]
+            eneb = res["orben"][i, 2]
+            println("$aocc       $enea    |    $eneb       $bocc")
+        end
+    end
 end

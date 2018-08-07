@@ -5,22 +5,22 @@ include("RestrictedOpenProblem.jl")
 include("../common/Setup.jl")
 
 if length(ARGS) != 1
-	println("Provide integral file on first arg")
-	exit(1)
+    println("Provide integral file on first arg")
+    exit(1)
 end
 intfile = ARGS[1]
 system, integrals = read_hdf5(intfile)
 
 ProbType = UnrestrictedProblem
 if occursin("ROHF", PROGRAM_FILE)
-	ProbType = RestrictedOpenProblem
-	println()
-	println("Running restricted-open SCF for $intfile")
-	println()
+    ProbType = RestrictedOpenProblem
+    println()
+    println("Running restricted-open SCF for $intfile")
+    println()
 else
-	println()
-	println("Running unrestricted SCF for $intfile")
-	println()
+    println()
+    println("Running unrestricted SCF for $intfile")
+    println()
 end
 
 n_bas = size(integrals.electron_repulsion_bbbb)[1]
@@ -34,12 +34,12 @@ ene_nuc_rep = compute_nuclear_repulsion(system)
 println("Nuclear repulsion energy: $ene_nuc_rep")
 
 problem = ProbType(
-	ene_nuc_rep,
-	integrals.kinetic_bb + integrals.nuclear_attraction_bb,
-	integrals.electron_repulsion_bbbb,
-	integrals.overlap_bb, n_occ, n_bas)
+    ene_nuc_rep,
+    integrals.kinetic_bb + integrals.nuclear_attraction_bb,
+    integrals.electron_repulsion_bbbb,
+    integrals.overlap_bb, n_occ, n_bas)
 @assert n_occ_a >= n_occ_b begin
-	"Number of alpha electrons should be larger than number of beta electrons"
+    "Number of alpha electrons should be larger than number of beta electrons"
 end
 
 # Compute HCore guess density and duplicate it on the spin components
@@ -51,15 +51,15 @@ guess_density[:, :, 1] += diagm(0 => guess_diagonal)
 guess_density[:, :, 2] -= diagm(0 => guess_diagonal)
 
 params = Dict(
-	:max_error_norm=>5e-7,
-	:max_energy_total_change=>1.25e-07,
+    :max_error_norm=>5e-7,
+    :max_energy_total_change=>1.25e-07,
 )
 res = run_scf(problem, guess_density; params...)
 
 if res["is_converged"]
-	println("SCF converged.")
-	println()
-	print_energies(problem, integrals, res)
-	println()
-	print_mo_occupation(problem, res)
+    println("SCF converged.")
+    println()
+    print_energies(problem, integrals, res)
+    println()
+    print_mo_occupation(problem, res)
 end
