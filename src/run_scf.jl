@@ -3,7 +3,7 @@ using Printf
 # TODO Find a way to get the print statements out
 function run_scf(problem::ScfProblem, guess_density::AbstractArray;
                  max_iter=100, damping_max_error_norm=1e-2,
-                 damping_max_energy_total_change=0.0025,
+                 damping_max_energy_total_change=0.05,
                  kwargs...)
     # Setup accelerators and SCF-global objects
     damping = FixedDamping(problem; kwargs...)
