@@ -64,9 +64,9 @@ function SelfConsistentField.compute_fock(
     fock = reshape(focka, (n_bas, n_bas, 1))
 
     total = energy_one_elec + energy_two_elec + problem.energy_nuc_rep
-    energies = Dict("energy_1e"=> energy_one_elec,
-                    "energy_2e"=> energy_two_elec,
-                    "energy_total"=> total)
+    energies = Dict("1e"=> energy_one_elec,
+                    "2e"=> energy_two_elec,
+                    "total"=> total)
 
     return fock, error, energies
 end

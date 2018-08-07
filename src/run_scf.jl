@@ -29,15 +29,14 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
         # Print current status
         energies = newiterate.energies
         @printf(" %4d %14.8f %14.8f %14.8f %15.9g %12d\n",
-                i, energies["energy_1e"], energies["energy_2e"],
-                energies["energy_total"], scfconv.error_norm,
+                i, energies["1e"], energies["2e"], energies["total"], scfconv.error_norm,
                 n_applies)
 
         # If converged end iteration
         if scfconv.is_converged break end
 
         remove_damping = (scfconv.error_norm < damping_max_error_norm
-                          || abs(scfconv.energy_change["energy_total"])
+                          || abs(scfconv.energy_change["total"])
                           < damping_max_energy_total_change)
         if remove_damping && damping != nothing
             println(repeat(" ", 18), "**** Removing any damping ****")

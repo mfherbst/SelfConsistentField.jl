@@ -84,8 +84,8 @@ function print_energies(problem, integrals, res)
     println("nuclear_repulsion  ", problem.energy_nuc_rep)
     println()
 
-    e1e = res["energies"]["energy_1e"]
-    e2e = res["energies"]["energy_2e"]
+    e1e = res["energies"]["1e"]
+    e2e = res["energies"]["2e"]
     println("E_1e               ", e1e)
     println("E_2e               ", e2e)
     println("E electronic       ", e1e + e2e)
@@ -97,7 +97,7 @@ function print_energies(problem, integrals, res)
     println("virial ratio       ", -Epot / Ekin)
 
     println()
-    println("E_total            ", res["energies"]["energy_total"])
+    println("E_total            ", res["energies"]["total"])
 end
 
 function print_mo_occupation(problem, res)

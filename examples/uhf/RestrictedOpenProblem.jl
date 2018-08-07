@@ -74,7 +74,7 @@ Update a Fock iterate using the provided orbital energies
 and orbital coefficients
 """
 function SelfConsistentField.compute_fock(
-   problem::UnrestrictedProblem, density::AbstractArray;
+   problem::RestrictedOpenProblem, density::AbstractArray;
    kwargs...
 )
     # TODO Split into compute fock and compute error
@@ -129,9 +129,9 @@ function SelfConsistentField.compute_fock(
     # From here it is exactly as in RHF or UHF
     #
     total = energy_one_elec + energy_two_elec + problem.energy_nuc_rep
-    energies = Dict("energy_1e"=> energy_one_elec,
-                    "energy_2e"=> energy_two_elec,
-                    "energy_total"=> total)
+    energies = Dict("1e"=> energy_one_elec,
+                    "2e"=> energy_two_elec,
+                    "total"=> total)
 
     return fock, error, energies
 end

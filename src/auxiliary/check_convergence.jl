@@ -27,10 +27,10 @@ function check_convergence(olditerate::ScfIterState, newiterate::ScfIterState;
     if error_norm >= max_error_norm
         converged = false
     end
-    if energy_change["energy_total"] >= max_energy_total_change
+    if energy_change["total"] >= max_energy_total_change
         converged = false
     end
-    if energy_change["energy_1e"] >= max_energy_1e_change
+    if energy_change["1e"] >= max_energy_1e_change
         converged = false
     end
     return ScfConvergence(error_norm, energy_change, converged)
