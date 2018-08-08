@@ -1,5 +1,17 @@
 using LinearAlgebra: norm, tr
 
+function print_results(problem, integrals, res)
+    if res["is_converged"]
+        println("SCF converged.")
+        println()
+        print_energies(problem, integrals, res)
+        println()
+        print_mo_occupation(problem, res)
+    else
+        println("SCF failed to converge")
+    end
+end
+
 function print_energies(problem, integrals, res)
     _, _, n_spin = size(res["density"])
 
