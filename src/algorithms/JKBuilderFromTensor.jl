@@ -1,9 +1,10 @@
 using TensorOperations
 
 """
-Two electron term builder, which builds J + K combined.
+Two electron term builder, which builds J + K combined
+from an electron repulsion eri tensor, which is stored completely in memory.
 """
-struct JKBuilder <: SelfConsistentField.TwoElectronBuilder
+struct JKBuilderFromTensor <: SelfConsistentField.TwoElectronBuilder
     eri::AbstractArray{Float64, 4}  # make generic in T
 end
 
@@ -18,10 +19,10 @@ If the density object is a stack of two matrices, then the first density is inte
 as the alpha density and the second as the beta density. The sum is used for J
 and the individual terms for K. A tuple of AbstractArrays will be returned.
 """
-function SelfConsistentField.add_2e_term!(out::AbstractArray,
-                                          builder::JKBuilder,
-                                          density::AbstractArray,
-                                          total_density::AbstractArray)
+function add_2e_term!(out::AbstractArray,
+                      builder::JKBuilderFromTensor,
+                      density::AbstractArray,
+                      total_density::AbstractArray)
     n_bas, _, n_spin = size(density)
     Dtot = total_density
     eri = builder.eri

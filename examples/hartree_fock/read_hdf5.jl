@@ -10,7 +10,7 @@ function read_hdf5(file)
     T = read(file,"kinetic_bb")
     V = read(file,"nuclear_attraction_bb")
     S = read(file,"overlap_bb")
-    JK = JKBuilder(eri)
+    JK = JKBuilderFromTensor(eri)
 
     nelec = (read(file,"system/nelec")...,)
     atnums = read(file, "system/atom_numbers")

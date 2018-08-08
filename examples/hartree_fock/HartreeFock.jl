@@ -1,5 +1,4 @@
 using SelfConsistentField
-include("JKBuilder.jl")
 include("read_hdf5.jl")
 include("print_results.jl")
 
