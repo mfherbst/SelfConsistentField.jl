@@ -1,5 +1,5 @@
 using SelfConsistentField
-include("read_hdf5.jl")
+include("../../test/util/read_hdf5.jl")
 include("print_results.jl")
 
 function parse_args()
@@ -37,9 +37,9 @@ function print_info(problem)
     end
 
     println("Problem information:")
-    println("   # α electrons:     ", problem.n_elec[1])
-    println("   # β electrons:     ", problem.n_elec[2])
-    println("   # basis functions: ", size(problem.h_core)[1])
+    println("   № α electrons:     ", problem.n_elec[1])
+    println("   № β electrons:     ", problem.n_elec[2])
+    println("   № basis functions: ", size(problem.h_core)[1])
     println("   SCF type:          $scftype")
 end
 
