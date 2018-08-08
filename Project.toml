@@ -1,9 +1,10 @@
 name = "SelfConsistentField"
 uuid = "119f0ea8-998d-11e8-3b57-f9f0ca1c0560"
-authors = ["Michael F. Herbst <info@michael-herbst.com>"]
+authors = ["Michael F. Herbst <info@michael-herbst.com>", "Tobias K. Wackenhut <tobias@wackenhut.at>"]
 version = "0.0.0"
 
 [deps]
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 TensorOperations = "6aa20fa7-93e2-5fca-9bc0-fbd0db3c71a2"

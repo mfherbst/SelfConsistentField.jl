@@ -1,7 +1,8 @@
 module SelfConsistentField
 
-using LinearAlgebra: norm, Hermitian, eigen, I, tr
+using LinearAlgebra
 using TensorOperations
+using DataStructures
 
 export run_scf, ScfProblem, compute_guess_hcore
 export assemble_hf_problem, compute_nuclear_repulsion
@@ -25,6 +26,7 @@ include("guess/hcore.jl")
 include("algorithms/JKBuilderFromTensor.jl")
 include("algorithms/Roothaan.jl")
 include("algorithms/FixedDamping.jl")
+include("algorithms/cDIIS.jl")
 
 include("run_scf.jl")
 

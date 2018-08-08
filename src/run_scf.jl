@@ -2,12 +2,12 @@ using Printf
 
 # TODO Find a way to get the print statements out
 function run_scf(problem::ScfProblem, guess_density::AbstractArray;
-                 max_iter=100, damping_max_error_norm=1e-2,
-                 damping_max_energy_total_change=0.05,
+                 max_iter=100, damping_max_error_norm=0.25,
                  kwargs...)
     # Setup accelerators and SCF-global objects
     damping = FixedDamping(problem; kwargs...)
     scfconv = nothing
+    switched_to_diis = false
 
     # Build initial iterate
     fock, error, energies = compute_fock_matrix(problem, guess_density; kwargs...)
@@ -35,13 +35,12 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
         # If converged end iteration
         if scfconv.is_converged break end
 
-        remove_damping = (scfconv.error_norm < damping_max_error_norm
-                          || abs(scfconv.energy_change["total"])
-                          < damping_max_energy_total_change)
-        if remove_damping && damping != nothing
-            println(repeat(" ", 18), "**** Removing any damping ****")
-            damping = nothing
+        if scfconv.error_norm < 0.25 && !switched_to_diis
+            println("**** Switching on DIIS ****")
+            damping = cDIIS(problem; kwargs...)
+            switched_to_diis = true
         end
+
         iterate = newiterate
     end
 
