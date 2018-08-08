@@ -17,14 +17,16 @@ end
 mutable struct cDIIS <: Accelerator
     n_diis_size::Int
     state::Tuple{cDIISstate, cDIISstate}
+    conditioning_threshold::Float64
+    coefficient_threshold::Float64
 
-    function cDIIS(problem::ScfProblem; n_diis_size = 5, kwargs...)
+    function cDIIS(problem::ScfProblem; n_diis_size = 5, conditioning_threshold = 1e-14, coefficient_threshold = 1e-6, kwargs...)
         stateα = cDIISstate(CircularBuffer{AbstractArray}(n_diis_size),
             CircularBuffer{AbstractArray}(n_diis_size),
             CircularBuffer{AbstractArray}(sum(1:n_diis_size -1))
         )
         stateβ = deepcopy(stateα)
-        new(n_diis_size, (stateα, stateβ))
+        new(n_diis_size, (stateα, stateβ), conditioning_threshold, coefficient_threshold)
     end
 end
 
@@ -58,7 +60,7 @@ function compute_next_iterate(acc::cDIIS, iterate::ScfIterState)
     # and write them in the result matrix directly to save memory
     new_iterate_fock = zeros(size(iterate.fock))
     for i in 1:size(iterate.fock, 3)
-        compute_next_iterate_fock!(acc.state[i], acc.n_diis_size, view(new_iterate_fock, :,:,i))
+        compute_next_iterate_fock!(acc.state[i], acc.n_diis_size, view(new_iterate_fock, :,:,i), acc.conditioning_threshold, acc.coefficient_threshold)
     end
 
     return update_iterate_matrix(iterate, new_iterate_fock)
@@ -68,7 +70,7 @@ end
     Computes a new matrix to be used as Fock Matrix in next iteration
     The function writes the result into the passed argument 'fock'
 """
-function compute_next_iterate_fock!(state::cDIISstate, n_diis_size::Int, fock::SubArray)
+function compute_next_iterate_fock!(state::cDIISstate, n_diis_size::Int, fock::SubArray, conditioning_threshold::Float64, coefficient_threshold::Float64)
     @assert n_diis_size > 0
     @assert state.fock.length > 0
 
@@ -86,23 +88,60 @@ function compute_next_iterate_fock!(state::cDIISstate, n_diis_size::Int, fock::S
 
     A = diis_build_matrix(n_diis_size, m, state)
     rhs = diis_build_rhs(n_diis_size, m, state)
+    (c, bad_condition) = diis_solve_coefficients(A, rhs, conditioning_threshold)
 
-    # Solve the linear System to obtain the result of B * c = rhs
-    c = A \ rhs
+    # In some cases the matrix so badly conditioned, that we cannot produce a
+    # sane new iterate. In this case we need to reuse the newest fock matrix
+    if bad_condition
+        fock .= state.fock[1]
+        return
+    end
+
+    # add very small coefficients to the largest one but always use the most
+    # recent fock matrix regardless of the coefficient value
+    mask = map(x -> norm(x) > coefficient_threshold, c)
+    mask[1] = true
+    c[argmax(c)] += sum(c[ .! mask])
+
+    # Construct new Fock Matrix using obtained coefficients
+    # and write it to the given fock matrix. We assume, that
+    # fock is a matrix of zeros.
+    for i in eachindex(c)[mask]
+        fock .+= c[i] * state.fock[i]
+    end
+end
+
+"""
+    Solves the linear system after removing small eigenvalues to improve
+    consistency.
+
+    Returns the vector c and and a boolean value representing if the matrix A
+    is so badly conditioned, that the previous fock matrix should be used.
+"""
+function diis_solve_coefficients(A, rhs, threshold)
+    println(cond(A))
+    # calculate the eigenvalues of A and select sufficiently large eigenvalues
+    λ, U = eigen(A)
+    mask = map(x -> norm(x) > threshold, λ)
+
+    # if all eigenvalues are under the threshold, return and indicate, that the
+    # previous fock matrix should be used without modifications.
+    if all( .! mask)
+        println("All eigenvalues are under the threshold! Skipping iterate modification…")
+        return (nothing, true)
+    end
+
+    # Obtain the solution of the linear system A * c = rhs using the inverse
+    # matrix of A constructed using the above decomposition
+    c = U[:,mask] * Diagonal(1 ./ λ[mask]) * U[:,mask]' * rhs
 
     # Warning: Note that c has size (n_diis_size + 1) since
     #          the last element is the lagrange multiplier
     #          corresponding to the constraint
     #          \sum_{i=1}^n_diis_size c_i = 1
-    #          we will not need this last element
+    #          We need to remove this element!
 
-
-    # Construct new Fock Matrix using obtained coefficients
-    # and write it to the given fock matrix. We assume, that
-    # fock is a matrix of zeros.
-    for i in 1:m
-        fock .+= c[i] * state.fock[i]
-    end
+    return (c[1:length(c) - 1], false)
 end
 
 """
