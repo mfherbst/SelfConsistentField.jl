@@ -9,7 +9,7 @@ branches:
 
 os:
   - linux
-  - osx
+#  - osx    # TODO Not yet officially supported
 julia:
   - 0.7
   - 1.0
