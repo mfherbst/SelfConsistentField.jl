@@ -12,7 +12,7 @@ function read_hdf5(file)
     S = read(file,"overlap_bb")
     JK = JKBuilderFromTensor(eri)
 
-    nelec = (read(file,"system/nelec")...,)
+    nelec = convert(Tuple{Int64, Int64}, (read(file,"system/nelec")...,))
     atnums = read(file, "system/atom_numbers")
     coords = read(file, "system/coords")
 

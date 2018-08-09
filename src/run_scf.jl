@@ -9,6 +9,9 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
     scfconv = nothing
     switched_to_diis = false
 
+    n_iter = 0 # Number of iterations
+    n_applies = NaN # Number of applies of the fock matrix, which was required
+
     # Build initial iterate
     fock, error_pulay, energies = compute_fock_matrix(problem, guess_density; kwargs...)
     iterate = FockIterState(fock, error_pulay, energies, nothing, nothing)
@@ -21,7 +24,6 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
 
         # and perform a step to progress
         newiterate = roothan_step(problem, iterate; kwargs...)
-        n_applies = NaN # Number of applies of the fock matrix, which was required
 
         # Compute convergence state
         scfconv = check_convergence(iterate, newiterate; kwargs...)
@@ -42,10 +44,16 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
         end
 
         iterate = newiterate
+        n_iter = i
     end
+
+    # TODO Could compute the missing termwise energies here
 
     # Return results
     return Dict(
+        "n_iter"=>n_iter,
+        "n_applies"=>n_applies,
+        "problem"=>problem,
         "orben"=>iterate.orben,
         "orbcoeff"=>iterate.orbcoeff,
         "density"=>compute_density(problem,iterate.orbcoeff),
