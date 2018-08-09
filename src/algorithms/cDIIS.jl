@@ -35,7 +35,7 @@ end
 function push_iterate_to_state!(iterate::ScfIterState, states::Tuple)
     for i in 1:size(iterate.fock, 3)
         pushfirst!(states[i].fock,  view(iterate.fock, :,:,i))
-        pushfirst!(states[i].error, view(iterate.error, :,:,i))
+        pushfirst!(states[i].error, view(iterate.error_pulay, :,:,i))
     end
 end
 

@@ -5,13 +5,13 @@ function compute_pulay_error(fock::AbstractArray{T,3},
     @assert n_spin == 1 || n_spin == 2
 
     # TODO We should avoid the memory allocation
-    error = Array{eltype(density)}(undef, n_bas, n_bas, n_spin)
+    error_pulay = Array{eltype(density)}(undef, n_bas, n_bas, n_spin)
     for σ in 1:n_spin
-        error[:, :, σ] = compute_pulay_error(view(fock, :, :, σ),
-                                             view(density, :, :, σ),
-                                             overlap)
+        error_pulay[:, :, σ] = compute_pulay_error(view(fock, :, :, σ),
+                                                   view(density, :, :, σ),
+                                                   overlap)
     end
-    return error
+    return error_pulay
 end
 
 function compute_pulay_error(fock::AbstractArray{T,2},

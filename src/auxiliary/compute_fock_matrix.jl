@@ -57,17 +57,17 @@ function compute_fock_matrix(problem::ScfProblem, density::AbstractArray; kwargs
     # deviating shapes in case different spin components are present)
     fock = G .+ h_core
 
-    error = 0
+    error_pulay = 0
     if n_spin == 2 && problem.restricted
         # Build effective fock matrix for restricted open-shell
         fock = compute_roothaan_effective_fock(fock, density, overlap)
-        error = compute_pulay_error(fock, total_density, overlap)
+        error_pulay = compute_pulay_error(fock, total_density, overlap)
         fock = reshape(fock, n_bas, n_bas, 1)
     else
-        error = compute_pulay_error(fock, density, overlap)
+        error_pulay = compute_pulay_error(fock, density, overlap)
     end
 
-    return fock, error, energies
+    return fock, error_pulay, energies
 end
 
 """

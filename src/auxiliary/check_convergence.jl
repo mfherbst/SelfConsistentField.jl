@@ -2,7 +2,7 @@
 Struct to track convergence of the SCF procedure
 """
 struct ScfConvergence
-    error_norm::Float64          # Frobenius error norm
+    error_norm::Float64          # Frobenius error norm of the Pulay error
     energy_change::Dict{String, Float64}   # Change in the energy terms
     is_converged::Bool           # Is SCF converged
 end
@@ -15,7 +15,7 @@ function check_convergence(olditerate::ScfIterState, newiterate::ScfIterState;
                            max_energy_total_change=1.25e-07,
                            max_energy_1e_change=5e-5,
                            kwargs...)
-    error_norm = norm(reshape(newiterate.error, :))
+    error_norm = norm(reshape(newiterate.error_pulay, :))
     energy_change = Dict{String, Float64}()
     for (key, oval) in olditerate.energies
         nval = newiterate.energies[key]

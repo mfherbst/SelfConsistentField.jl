@@ -7,12 +7,12 @@ abstract type ScfIterState end
 """
 Struct of the state if the Fock matrix is iterated
 """
-struct FockIterState <: ScfIterState
+mutable struct FockIterState <: ScfIterState
     # Fock or Kohn-Sham matrix
     fock::AbstractArray
 
-    # Matrix describing the error in fock
-    error::AbstractArray
+    # Matrix describing the Pulay error in fock
+    error_pulay::AbstractArray
 
     # Named tuple or dict of the computed energy terms
     energies::Dict{String, Float64}
@@ -27,7 +27,7 @@ function get_iterate_matrix(iterate::FockIterState)
 end
 
 function update_iterate_matrix(iterate::FockIterState, fock::AbstractArray)
-    return FockIterState(fock, iterate.error, iterate.energies,
+    return FockIterState(fock, iterate.error_pulay, iterate.energies,
                          iterate.orbcoeff, iterate.orben)
 end
 

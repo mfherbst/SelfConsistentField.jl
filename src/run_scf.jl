@@ -10,8 +10,8 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
     switched_to_diis = false
 
     # Build initial iterate
-    fock, error, energies = compute_fock_matrix(problem, guess_density; kwargs...)
-    iterate = FockIterState(fock, error, energies, nothing, nothing)
+    fock, error_pulay, energies = compute_fock_matrix(problem, guess_density; kwargs...)
+    iterate = FockIterState(fock, error_pulay, energies, nothing, nothing)
 
     @printf("%5s %14s %14s %14s %15s %12s\n",
             "iter", "e1e", "e2e", "etot", "scf_error", "n_applies")
