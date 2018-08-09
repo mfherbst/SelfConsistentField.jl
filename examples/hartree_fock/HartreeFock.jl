@@ -65,4 +65,6 @@ function main()
     print_results(problem, integrals, res)
 end
 
-main()
+if abspath(PROGRAM_FILE) == @__FILE__
+    main()
+end
