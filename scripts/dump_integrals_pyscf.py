@@ -42,13 +42,12 @@ def dump_integrals_gaussian(atoms, coords, electrons,
         sys.create_dataset("atom_numbers", data=mol.atom_charges())
         sys.create_dataset("coords", data=np.array(mol.atom_coords()))
 
-        basis = h5f.create_group("discretisation")
-        basis.create_dataset("type",
-                             data=np.array(["gaussian"],
-                                           dtype=h5py.special_dtype(vlen=str)))
-        basis.create_dataset("basis_set_name",
-                             data=np.array([basis_set_name],
-                                           dtype=h5py.special_dtype(vlen=str)))
+        g_discr = h5f.create_group("discretisation")
+        g_discr.create_dataset("basis_type", data="gaussian",
+                               dtype=h5py.special_dtype(vlen=str))
+        g_discr.create_dataset("basis_set_name",
+                               dtype=h5py.special_dtype(vlen=str),
+                               data=basis_set_name)
 
 
 def main():
