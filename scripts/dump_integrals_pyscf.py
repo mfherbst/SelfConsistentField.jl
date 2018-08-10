@@ -26,7 +26,8 @@ def dump_integrals_gaussian(atoms, coords, electrons,
     }
 
     if ifile is None:
-        ifile = "integrals_{}_{}.hdf5".format("".join(atoms), basis_set_name)
+        latoms = [a.lower() for a in atoms]
+        ifile = "integrals_{}_{}.hdf5".format("".join(latoms), basis_set_name)
 
     with h5py.File(ifile, "w") as h5f:
         for key, integral in int_map.items():

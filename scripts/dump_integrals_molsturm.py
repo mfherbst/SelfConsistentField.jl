@@ -32,7 +32,8 @@ def dump_integrals_gaussian(atoms, coords, electrons,
                                             basis_set_name=basis_set_name)
 
     if ifile is None:
-        ifile = "integrals_{}_{}.hdf5".format("".join(atoms), basis_set_name)
+        latoms = [a.lower() for a in atoms]
+        ifile = "integrals_{}_{}.hdf5".format("".join(latoms), basis_set_name)
 
     with h5py.File(ifile, "w") as h5f:
         write_integrals_to_hdf5(params, h5f)
@@ -53,13 +54,16 @@ def dump_integrals_sturmian(atoms, coords, electrons,
 
     params = molsturm.ScfParameters()
     params.system = system
-    params.basis = molsturm.construct_basis("sturmian/atomic", params.system,
-                                            k_exp=k_exp, n_max=n_max,
-                                            l_max=l_max, m_max=m_max)
+    basis = molsturm.construct_basis("sturmian/atomic", params.system,
+                                     k_exp=k_exp, n_max=n_max,
+                                     l_max=l_max, m_max=m_max)
+    basis.backend = "cs_reference"
+    params.basis = basis
 
     if ifile is None:
+        latoms = [a.lower() for a in atoms]
         ifile = ("integrals_{}_{:02d}{:02d}{:02d}_{:.4f}.hdf5"
-                 "".format("".join(atoms), n_max, l_max, m_max, k_exp))
+                 "".format("".join(latoms), n_max, l_max, m_max, k_exp))
 
     with h5py.File(ifile, "w") as h5f:
         write_integrals_to_hdf5(params, h5f)
@@ -76,7 +80,7 @@ def dump_integrals_sturmian(atoms, coords, electrons,
 
 def main():
     atoms = ["O"]
-    coords = [0, 0, 0]
+    coords = [[0, 0, 0]]
     electrons = (5, 3)
 
     k_exp = 3.638
