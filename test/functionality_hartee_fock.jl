@@ -1,9 +1,9 @@
 this_dir = dirname(PROGRAM_FILE)
-include(joinpath(this_dir, "util", "read_hdf5.jl"))
+include(joinpath(this_dir, "util", "load_integrals.jl"))
 
 function run_problem(intfile, restricted)
     intfile = joinpath(this_dir, "data", intfile)
-    system, integrals = read_hdf5(intfile)
+    system, integrals = load_integral_file(intfile)
     problem = assemble_hf_problem(system, integrals; restricted=restricted)
     hcore_guess_density = compute_guess_hcore(problem, system.coords, system.atom_numbers)
     return run_scf(problem, hcore_guess_density)

@@ -1,5 +1,7 @@
+#!/usr/bin/env julia
+
 using SelfConsistentField
-include("../../test/util/read_hdf5.jl")
+include("../../test/util/load_integral_file.jl")
 include("print_results.jl")
 
 function parse_args()
@@ -47,7 +49,7 @@ function main()
     restricted, intfile = parse_args()
 
     println("Reading file $intfile")
-    system, integrals = read_hdf5(intfile)
+    system, integrals = load_integral_file(intfile)
     println()
 
     problem = assemble_hf_problem(system, integrals; restricted=restricted)
