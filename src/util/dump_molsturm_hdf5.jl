@@ -57,12 +57,16 @@ function matrix_b2f(mat, orbcoeff)
     n_bas, n_orb, n_spin = size(orbcoeff)
 
     if ndims(mat) == 2
-        mat = cat(mat, mat; dims=3)
+        if n_spin == 1
+            mat = cat(mat; dims=3)
+        elseif n_spin == 2
+            mat = cat(mat, mat; dims=3)
+        end
     end
     @assert size(mat) == (n_bas, n_bas, n_spin)
 
     mat_ff = Array{eltype(mat)}(undef, n_orb, n_orb, n_spin)
-    for σ in 1:2
+    for σ in 1:n_spin
         mat_ff[:,:,σ] = (view(orbcoeff, :, :, σ)' * view(mat, :, :, σ) *
                          view(orbcoeff, :, :, σ))
     end
