@@ -19,6 +19,8 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
     @printf("%5s %14s %14s %14s %15s %12s\n",
             "iter", "e1e", "e2e", "etot", "scf_error", "n_applies")
     for i in 1:max_iter
+        n_iter = i
+
         # Extrapolate next iterate
         iterate = compute_next_iterate(damping, iterate)
 
@@ -44,10 +46,7 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
         end
 
         iterate = newiterate
-        n_iter = i
     end
-
-    # TODO Could compute the missing termwise energies here
 
     # Return results
     return Dict(
@@ -57,7 +56,7 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
         "orben"=>iterate.orben,
         "orbcoeff"=>iterate.orbcoeff,
         "density"=>compute_density(problem,iterate.orbcoeff),
-        "is_converged"=> scfconv.is_converged,
+        "converged"=> scfconv.is_converged,
         "fock"=>iterate.fock,
         "energies"=>iterate.energies,
         "error_norm"=>scfconv.error_norm,
