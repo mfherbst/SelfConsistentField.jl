@@ -1,51 +1,42 @@
 using LinearAlgebra: norm, tr
+using Printf
 
-function print_results(problem, integrals, res)
-    if res["is_converged"]
+function print_results(problem, res)
+    if res["converged"]
         println("SCF converged.")
-        println()
-        print_energies(problem, integrals, res)
-        println()
-        print_mo_occupation(problem, res)
     else
         println("SCF failed to converge")
     end
+
+    println()
+    print_energies(res)
+    println()
+    print_mo_occupation(problem, res)
 end
 
-function print_energies(problem, integrals, res)
-    _, _, n_spin = size(res["density"])
-
-    # Alpha density
-    Da = view(res["density"], :, :, 1)
-    Db = if n_spin == 1 Da else view(res["density"], :, :, 2) end
-
-    # Compute energies
-    # TODO This should live somewhere else
-    Ekin = tr(Da * integrals.kinetic_bb) + tr(Db * integrals.kinetic_bb)
-    Enucattr = (tr(Da * integrals.nuclear_attraction_bb)
-                + tr(Db * integrals.nuclear_attraction_bb))
-    e0e = res["energies"]["0e"]
-    e1e = res["energies"]["1e"]
-    e2e = res["energies"]["2e"]
+function print_energies(res)
+    energies = res["energies"]
 
     println("Final energies")
-    println("kinetic            ", Ekin)
-    println("nuclear_attraction ", Enucattr)
-    println("nuclear_repulsion  ", e0e)
+    @printf("%20s = %15.10g\n", "coulomb", energies["coulomb"])
+    @printf("%20s = %15.10g\n", "exchange", energies["exchange"])
+    @printf("%20s = %15.10g\n", "kinetic", energies["kinetic"])
+    @printf("%20s = %15.10g\n", "nuclear_attraction", energies["nuclear_attraction"])
+    @printf("%20s = %15.10g\n", "nuclear_repulsion", energies["nuclear_repulsion"])
     println()
 
-    println("E_1e               ", e1e)
-    println("E_2e               ", e2e)
-    println("E electronic       ", e1e + e2e)
+    @printf("%20s = %15.10g\n", "E_1e", energies["1e"])
+    @printf("%20s = %15.10g\n", "E_2e", energies["2e"])
+    @printf("%20s = %15.10g\n", "E electronic", energies["1e"] + energies["2e"])
 
     println()
-    Epot = Enucattr + e2e + e0e
-    println("E_pot              ", Epot)
-    println("E_kin              ", Ekin)
-    println("virial ratio       ", -Epot / Ekin)
+    Epot = energies["nuclear_attraction"] + energies["0e"] + energies["2e"]
+    @printf("%20s = %15.10g\n", "E_pot", Epot)
+    @printf("%20s = %15.10g\n", "E_kin", energies["kinetic"])
+    @printf("%20s = %15.10g\n", "virial ratio", -Epot / energies["kinetic"])
 
     println()
-    println("E_total            ", res["energies"]["total"])
+    @printf("%20s = %20.15g\n", "E_total", energies["total"])
 end
 
 function print_mo_occupation(problem, res)

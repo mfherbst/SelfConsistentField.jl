@@ -33,8 +33,6 @@ function load_integral_file(hdf5_file)
             basis_set_name=read(file, "discretisation/basis_set_name"),
         )
     end
-
-
     close(file)
 
     # coordinates need to be transformed from row-major
