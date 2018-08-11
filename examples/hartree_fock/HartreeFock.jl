@@ -97,9 +97,7 @@ function compute_termwise_hf_energies!(res, problem)
     energies["exchange"] = energy_K
 end
 
-function main()
-    restricted, intfile, ofile = parse_args()
-
+function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     println("Reading file $intfile")
     system, integrals = load_integral_hdf5(intfile)
     println()
@@ -126,6 +124,11 @@ function main()
     if ofile != nothing
         dump_molsturm_hdf5(integrals, res, ofile)
     end
+end
+
+function main()
+    restricted, intfile, ofile = parse_args()
+    hartree_fock(intfile; restricted=restricted, ofile=ofile)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
