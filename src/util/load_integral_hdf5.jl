@@ -3,7 +3,7 @@ using HDF5
 """
 Read an hdf5 file of integral data
 """
-function load_integral_file(hdf5_file)
+function load_integral_hdf5(hdf5_file)
     file = h5open(hdf5_file)
 
     eri = read(file, "electron_repulsion_bbbb")

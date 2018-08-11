@@ -2,9 +2,7 @@
 
 using TensorOperations
 using SelfConsistentField
-include("../../test/util/load_integral_file.jl")
 include("print_results.jl")
-include("dump_molsturm_hdf5.jl")
 
 function parse_args()
     have_error = false
@@ -103,7 +101,7 @@ function main()
     restricted, intfile, ofile = parse_args()
 
     println("Reading file $intfile")
-    system, integrals = load_integral_file(intfile)
+    system, integrals = load_integral_hdf5(intfile)
     println()
 
     problem = assemble_hf_problem(system, integrals; restricted=restricted)
