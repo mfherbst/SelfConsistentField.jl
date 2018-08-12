@@ -6,6 +6,8 @@ Read an hdf5 file of integral data
 function load_integral_hdf5(hdf5_file)
     file = h5open(hdf5_file)
 
+    # TODO For large eri objects one could use memory mapping
+    #      See https://github.com/JuliaIO/HDF5.jl/blob/master/doc/hdf5.md
     eri = read(file, "electron_repulsion_bbbb")
     T = read(file,"kinetic_bb")
     V = read(file,"nuclear_attraction_bb")
@@ -19,9 +21,14 @@ function load_integral_hdf5(hdf5_file)
     discretisation=nothing
     basis_type = read(file, "discretisation/basis_type")
     if startswith(basis_type, "sturmian")
+        # Read nlm_basis array from HDF5 file and transform
+        # from row-major (as it is stored) to column-major
+        # (the storage convention used by julia)
+        nlm_basis = Array(adjoint(read(file, "discretisation/nlm_basis")))
+
         discretisation = (
             basis_type=read(file, "discretisation/basis_type"),
-            nlm_basis=read(file, "discretisation/nlm_basis"),
+            nlm_basis=nlm_basis,
             k_exp=read(file, "discretisation/k_exp"),
             n_max=read(file, "discretisation/n_max"),
             l_max=read(file, "discretisation/l_max"),
