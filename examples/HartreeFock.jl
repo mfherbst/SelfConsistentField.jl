@@ -108,6 +108,9 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
 
     # Compute HCore guess
     guess_density = compute_guess_hcore(problem, system.coords, system.atom_numbers)
+    if ! problem.restricted && is_closed_shell(problem)
+        break_spin_symmetry(guess_density)
+    end
 
     params = Dict(
         :max_error_norm=>5e-7,

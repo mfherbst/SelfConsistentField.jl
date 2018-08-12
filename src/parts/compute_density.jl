@@ -22,7 +22,7 @@ function compute_density(problem::ScfProblem, orbcoeff::Array)
     # but two different occupancies are present in alpha and beta
     # in this case we still need to compute two densities
     n_densities = n_spin
-    if n_elec[1] != n_elec[2]
+    if !problem.restricted || n_elec[1] != n_elec[2]
         n_densities = 2
     end
 
