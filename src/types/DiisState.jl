@@ -28,33 +28,11 @@ function push_iterate!(state::DiisState, iterate::AbstractArray, error::Union{Ab
 end
 
 """
-    Obtaining views for specific spins
-"""
-function spin(obj::AbstractArray, dim::Int)
-    view(obj, ntuple(x -> Colon(), ndims(obj) - 1)..., dim)
-end
-
-"""
-    Get number of spins in object
-"""
-function spincount(obj::AbstractArray)
-    size(obj, ndims(obj))
-end
-
-"""
-    Iterator for indices of spins
-"""
-function spinloop(obj::Union{AbstractArray, Accelerator})
-    typeof(obj) == Accelerator ?
-        (1:spincount(obj.state.iterate)) :
-        (1:spincount(obj))
-end
-
-"""
-    remove 'count' Items from DiisState
+    Removes 'count' Items from DiisState.
+    Warning: Assumes you have already pushed a new iterate to the state.
 """
 function purge_from_state(state::DiisState, count::Int)
-    for i in 1:2*count
+    for i in 1:count + 1
         pop!(state.iterate)
         pop!(state.error)
         pop!(state.iterationstate)
