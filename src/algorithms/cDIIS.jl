@@ -88,18 +88,21 @@ function compute_next_iterate(acc::cDIIS, iterstate::ScfIterState)
     # computation routines that write directly into the view.
     new_iterate = zeros(size(iterstate.fock))
 
-    # TODO comment
+    # Defining anonymous functions with given arguments improves readability later on.
     matrix(σ) = diis_build_matrix(acc.state[σ])
     coefficients(A) = diis_solve_coefficients(A, acc.conditioning_threshold)
     compute(c, σ) = compute_next_iterate_matrix!(acc.state[σ], c, spin(new_iterate, σ), acc.coefficient_threshold)
 
-    # TODO comment
+    # If sync_spins is enabled, we need to calculate the coefficients using the
+    # merged matrix. This also means we need to remove the same number of
+    # matrices from both histrories.
     if acc.sync_spins & (spincount(iterstate.fock) == 2)
-        A = matrix(1) .+ matrix(2)
+        A = merge_matrices(matrix(1), matrix(2))
         c, matrixpurgecount = coefficients(A)
         map(σ -> compute(c, σ), spinloop(iterstate.fock))
-        map(σ -> purge_matrix_from_state(acc.state[σ], matrixpurgecount, spinloop(iterstate.fock)))
+        map(σ -> purge_matrix_from_state(acc.state[σ], matrixpurgecount), spinloop(iterstate.fock))
     else
+        # If we are calculating the spins separately, each spin has its own coefficients.
         for σ in spinloop(iterstate.fock)
             c, matrixpurgecount = coefficients(matrix(σ))
             compute(c, σ)
@@ -107,6 +110,15 @@ function compute_next_iterate(acc::cDIIS, iterstate::ScfIterState)
         end
     end
     return update_iterate_matrix(iterstate, new_iterate)
+end
+
+"""
+    When synchronizing spins the resulting DIIS matrices have to be added
+    together but the constraint must be kept as is.
+"""
+function merge_matrices(A1::AbstractArray, A2::AbstractArray)
+    view(A1, 1:size(A1, 1) - 1, 1:size(A1, 2) - 1) .+ view(A2, 1:size(A2, 1) - 1, 1:size(A2, 2) - 1)
+    return A1
 end
 
 function purge_matrix_from_state(state::DiisState, count::Int)
@@ -242,15 +254,15 @@ function diis_build_matrix(state::DiisState)
     # Now fill all rows with cached values,
     # push a '0' on each buffer to prepare it for the next iteration
     # and set the last element of each row to 1.
-    # TODO reformat
-    # Since we want to use this buffer as the 2nd row of A in the next
-    # iteration we need the following layout of the buffer
-    #   0 A[1,1] A[1,2] … A[1,m-1]
-    # so we need to push a 0 to the beginning
     for i in 1:m
         A[i,1:m] = state.errorOverlaps[i][1:m]
-        pushfirst!(state.errorOverlaps[i], 0)
         A[i, m + 1] = 1
+
+        # Since we want to use this buffer as the 2nd row of A in the next
+        # iteration we need the following layout of the buffer
+        #   0 A[1,1] A[1,2] … A[1,m-1]
+        # so we need to push a 0 to the beginning
+        pushfirst!(state.errorOverlaps[i], 0)
     end
 
     return Symmetric(A)
