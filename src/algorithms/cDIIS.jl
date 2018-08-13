@@ -3,25 +3,6 @@
 #
 
 """
-    Container type for the state of one spin type for cDIIS
-"""
-mutable struct DiisState
-    iterate::CircularBuffer
-    error::CircularBuffer
-    iterationstate::CircularBuffer
-    n_diis_size::Int
-
-    function DiisState(n_diis_size::Int)
-        new(CircularBuffer{AbstractArray}(n_diis_size),
-            CircularBuffer{AbstractArray}(n_diis_size),
-            CircularBuffer{AbstractArray}(n_diis_size),
-            n_diis_size
-        )
-    end
-end
-
-
-"""
     cDIIS
 """
 mutable struct cDIIS <: Accelerator
@@ -35,35 +16,6 @@ mutable struct cDIIS <: Accelerator
         stateβ = DiisState(n_diis_size)
         new((stateα, stateβ), sync_spins, conditioning_threshold, coefficient_threshold)
     end
-end
-
-"""
-    Helper function.
-    pushes current iterate and error matrices to states of both spin types
-"""
-function push_iterate!(state::DiisState, iterate::AbstractArray, error::Union{AbstractArray,Nothing} = nothing)
-    pushfirst!(state.iterate,  iterate)
-
-    # Push difference to previous iterate if no error given
-    pushfirst!(state.error,
-               error != nothing ? error : iterate - state.iterate[1])
-end
-
-"""
-    Helper functions to get views for specific spins
-"""
-function spin(obj::AbstractArray, dim::Int)
-    view(obj, ntuple(x -> Colon(), ndims(obj) - 1)..., dim)
-end
-
-function spincount(obj::AbstractArray)
-    size(obj, ndims(obj))
-end
-
-function spinloop(obj::Union{AbstractArray, Accelerator})
-    typeof(obj) == Accelerator ?
-        (1:spincount(obj.state.iterate)) :
-        (1:spincount(obj))
 end
 
 """
@@ -97,13 +49,13 @@ function compute_next_iterate(acc::cDIIS, iterstate::ScfIterState)
         A = merge_matrices(matrix(1), matrix(2))
         c, matrixpurgecount = coefficients(A)
         map(σ -> compute(c, σ), spinloop(iterstate.fock))
-        map(σ -> purge_matrix_from_state(acc.state[σ], matrixpurgecount), spinloop(iterstate.fock))
+        map(σ -> purge_from_state(acc.state[σ], matrixpurgecount), spinloop(iterstate.fock))
     else
         # If we are calculating the spins separately, each spin has its own coefficients.
         for σ in spinloop(iterstate.fock)
             c, matrixpurgecount = coefficients(matrix(σ))
             compute(c, σ)
-            purge_matrix_from_state(acc.state[σ], matrixpurgecount)
+            purge_from_state(acc.state[σ], matrixpurgecount)
         end
     end
     return update_iterate_matrix(iterstate, new_iterate)
@@ -118,17 +70,9 @@ function merge_matrices(A1::AbstractArray, A2::AbstractArray)
     return A1
 end
 
-function purge_matrix_from_state(state::DiisState, count::Int)
-    for i in 1:2*count
-        pop!(state.iterate)
-        pop!(state.error)
-        pop!(state.iterationstate)
-    end
-end
-
 """
     Computes a new matrix to be used as Fock Matrix in next iteration
-    The function writes the result into the passed argument 'fock'
+    The function writes the result into the passed argument 'iterate'
 """
 function compute_next_iterate_matrix!(state::DiisState, c::AbstractArray, iterate::SubArray, coefficient_threshold::Float64)
     # add very small coefficients to the largest one but always use the most
