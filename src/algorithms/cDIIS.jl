@@ -55,6 +55,15 @@ function diis_solve_coefficients(::cDIIS, A::AbstractArray, threshold::Float64)
 end
 
 """
+    When synchronizing spins the resulting DIIS matrices have to be added
+    together but the constraint must be kept as is.
+"""
+function merge_matrices(::cDIIS, A1::AbstractArray, A2::AbstractArray)
+    view(A1, 1:size(A1, 1) - 1, 1:size(A1, 2) - 1) .+ view(A2, 1:size(A2, 1) - 1, 1:size(A2, 2) - 1)
+    return A1
+end
+
+"""
     Linear System Matrix for the cDIIS accelerator.
     This is a hermitian matrix containing error overlaps B
     and ones in the form

@@ -14,9 +14,17 @@ mutable struct EDIIS <: Accelerator
     end
 end
 
-function diis_solve_coefficients(::EDIIS, A::AbstractArray, threshold::Float64)
+function diis_solve_coefficients(::EDIIS, B::AbstractArray, threshold::Float64)
     
     return c, 0
+end
+
+"""
+    When synchronizing spins the resulting DIIS matrices have to be added
+    together but the constraint must be kept as is.
+"""
+function merge_matrices(::cDIIS, B1::AbstractArray, B2::AbstractArray)
+    B1 .+ B2
 end
 
 """
@@ -32,5 +40,5 @@ function diis_build_matrix(::EDiis, state::DiisState)
     @assert state.iterate.length > 0
 
 
-    return Symmetric(A)
+    return Symmetric(B)
 end
