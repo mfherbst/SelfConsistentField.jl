@@ -8,9 +8,6 @@
 mutable struct DiisState
     iterate::CircularBuffer
     error::CircularBuffer
-
-    # iterationstate is a Circular Buffer containing already calculated rows of
-    # the next iterate matrix. Each row is also stored as a Circular Buffer.
     iterationstate::CircularBuffer
     n_diis_size::Int
 
@@ -243,7 +240,8 @@ function diis_build_matrix(state::DiisState)
                    tr(state.error[1]' * state.error[j])), 1:m)
     fill!(newValues, 0)
 
-    # Push newly calculated row to the row buffer.
+    # Push newly calculated row to the row buffer. We use the iterationstate to
+    # store these.
     pushfirst!(state.iterationstate, newValues)
 
     # The last element of each row of A has to be 1. After calling Symmetric(A)
