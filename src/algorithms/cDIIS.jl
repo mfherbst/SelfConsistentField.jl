@@ -9,9 +9,9 @@ mutable struct DiisState
     iterate::CircularBuffer
     error::CircularBuffer
 
-    # errorOverlaps is a Circular Buffer containing already calculated rows of
+    # iterationstate is a Circular Buffer containing already calculated rows of
     # the next iterate matrix. Each row is also stored as a Circular Buffer.
-    errorOverlaps::CircularBuffer
+    iterationstate::CircularBuffer
     n_diis_size::Int
 
     function DiisState(n_diis_size::Int)
@@ -125,7 +125,7 @@ function purge_matrix_from_state(state::DiisState, count::Int)
     for i in 1:2*count
         pop!(state.iterate)
         pop!(state.error)
-        pop!(state.errorOverlaps)
+        pop!(state.iterationstate)
     end
 end
 
@@ -244,7 +244,7 @@ function diis_build_matrix(state::DiisState)
     fill!(newValues, 0)
 
     # Push newly calculated row to the row buffer.
-    pushfirst!(state.errorOverlaps, newValues)
+    pushfirst!(state.iterationstate, newValues)
 
     # The last element of each row of A has to be 1. After calling Symmetric(A)
     # the copy of these 1s in the bottom row of A defines the constraint
@@ -255,14 +255,14 @@ function diis_build_matrix(state::DiisState)
     # push a '0' on each buffer to prepare it for the next iteration
     # and set the last element of each row to 1.
     for i in 1:m
-        A[i,1:m] = state.errorOverlaps[i][1:m]
+        A[i,1:m] = state.iterationstate[i][1:m]
         A[i, m + 1] = 1
 
         # Since we want to use this buffer as the 2nd row of A in the next
         # iteration we need the following layout of the buffer
         #   0 A[1,1] A[1,2] … A[1,m-1]
         # so we need to push a 0 to the beginning
-        pushfirst!(state.errorOverlaps[i], 0)
+        pushfirst!(state.iterationstate[i], 0)
     end
 
     return Symmetric(A)
