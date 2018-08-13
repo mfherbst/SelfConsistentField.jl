@@ -4,7 +4,8 @@ function run_problem(intfile, restricted)
     intfile = joinpath(this_dir, "data", intfile)
     system, integrals = load_integral_hdf5(intfile)
     problem = assemble_hf_problem(system, integrals; restricted=restricted)
-    hcore_guess_density = compute_guess_hcore(problem, system.coords, system.atom_numbers)
+    hcore_guess_density = compute_guess(problem, system.coords, system.atom_numbers;
+                                        method="hcore")
     return run_scf(problem, hcore_guess_density)
 end
 

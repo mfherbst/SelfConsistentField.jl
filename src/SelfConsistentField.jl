@@ -13,7 +13,7 @@ export compute_pulay_error, is_closed_shell
 
 # Utilities, which help in setting up an SCF problem or storing
 # the result
-export compute_guess_hcore, dump_molsturm_hdf5, load_integral_hdf5
+export compute_guess, dump_molsturm_hdf5, load_integral_hdf5
 export break_spin_symmetry
 
 include("types/ScfIterState.jl")
@@ -33,7 +33,7 @@ include("algorithms/Roothaan.jl")
 include("algorithms/FixedDamping.jl")
 include("algorithms/cDIIS.jl")
 
-include("util/guess_hcore.jl")
+include("util/guess.jl")
 include("util/dump_molsturm_hdf5.jl")
 include("util/load_integral_hdf5.jl")
 include("util/break_spin_symmetry.jl")
