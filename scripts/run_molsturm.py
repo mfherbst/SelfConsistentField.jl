@@ -20,11 +20,10 @@ with h5py.File(ifile, "r") as h5f:
     )
     params = molsturm.ScfParameters()
     params.system = system
-    params["scf/print_iterations"] = True
 
-    basis_type = str(h5f["discretisation/type"][0])
+    basis_type = str(h5f["discretisation/basis_type"].value)
     if basis_type == "gaussian":
-        bas = str(h5f["discretisation/basis_set_name"][0])
+        bas = str(h5f["discretisation/basis_set_name"].value)
         params.basis = molsturm.construct_basis("gaussian", params.system,
                                                 basis_set_name=bas)
     elif basis_type == "sturmian/atomic":
@@ -35,6 +34,10 @@ with h5py.File(ifile, "r") as h5f:
         params.basis = molsturm.construct_basis("sturmian/atomic", params.system,
                                                 k_exp=k_exp, n_max=n_max, l_max=l_max,
                                                 m_max=m_max)
+    else:
+        raise NotImplementedError("Basis type {} is not "
+                                  "implemented".format(basis_type))
+    params["scf/print_iterations"] = True
 
 
 res = molsturm.self_consistent_field(params)

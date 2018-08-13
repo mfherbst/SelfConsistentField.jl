@@ -19,7 +19,7 @@ with h5py.File(ifile, "r") as h5f:
     nelec = list(h5f["system/nelec"])
     atom_numbers = np.array(h5f["system/atom_numbers"])
     coords = np.array(h5f["system/coords"])
-    basis_set_name = h5f["discretisation/basis_set_name"].strip()
+    basis_set_name = str(h5f["discretisation/basis_set_name"].value)
 
 mol = pyscf.gto.Mole()
 mol.unit = "Bohr"
