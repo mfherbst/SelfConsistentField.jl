@@ -16,9 +16,10 @@ export compute_pulay_error, is_closed_shell
 export compute_guess, dump_molsturm_hdf5, load_integral_hdf5
 export break_spin_symmetry
 
+include("types/Accelerator.jl")
+include("types/DiisState.jl")
 include("types/ScfIterState.jl")
 include("types/ScfProblem.jl")
-include("types/Accelerator.jl")
 
 include("parts/compute_density.jl")
 include("parts/compute_orbitals.jl")
