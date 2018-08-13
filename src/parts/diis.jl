@@ -26,7 +26,7 @@ function compute_next_iterate(acc::cDIIS, iterstate::ScfIterState)
     # merged matrix. This also means we need to remove the same number of
     # matrices from both histrories.
     if acc.sync_spins & (spincount(iterstate.fock) == 2)
-        A = merge_matrices(matrix(1), matrix(2))
+        A = merge_matrices(acc, matrix(1), matrix(2))
         c, matrixpurgecount = coefficients(A)
         map(σ -> compute(c, σ), spinloop(iterstate.fock))
         map(σ -> purge_from_state(acc.state[σ], matrixpurgecount), spinloop(iterstate.fock))
@@ -39,15 +39,6 @@ function compute_next_iterate(acc::cDIIS, iterstate::ScfIterState)
         end
     end
     return update_iterate_matrix(iterstate, new_iterate)
-end
-
-"""
-    When synchronizing spins the resulting DIIS matrices have to be added
-    together but the constraint must be kept as is.
-"""
-function merge_matrices(A1::AbstractArray, A2::AbstractArray)
-    view(A1, 1:size(A1, 1) - 1, 1:size(A1, 2) - 1) .+ view(A2, 1:size(A2, 1) - 1, 1:size(A2, 2) - 1)
-    return A1
 end
 
 """
