@@ -1,38 +1,33 @@
 """
     Computes next iterate using DIIS
 """
-function compute_next_iterate(acc::cDIIS, iterstate::ScfIterState)
-    # Push iterate and error to state
-    map(σ -> push_iterate!(acc.state[σ], spin(iterstate.fock, σ), spin(iterstate.error_pulay, σ)), spinloop(iterstate.fock))
+function compute_next_iterate(acc::Union{cDIIS,EDIIS}, iterstate::ScfIterState)
+    iterate = get_iterate_matrix(iterstate)
 
-    # Check if the number of known fock and error matrices is equal for both
-    # spins before doing anything
-    history_size = acc.state[1].iterate.length
-    for σ in spinloop(iterstate.fock)
-        @assert acc.state[σ].iterate.length == history_size
-        @assert acc.state[σ].error.length == history_size
-    end
+    # Push iterate and error to state
+    map(σ -> push_iterate!(acc, acc.state[σ], spin(iterstate.fock, σ), spin(iterstate.error_pulay, σ), spin(iterstate.density, σ), iterstate.energies), spinloop(iterstate.fock))
 
     # To save memory we store only new_iterate once and pass views of it to the
     # computation routines that write directly into the view.
-    new_iterate = zeros(size(iterstate.fock))
+    new_iterate = zeros(size(iterate))
 
     # Defining anonymous functions with given arguments improves readability later on.
     matrix(σ) = diis_build_matrix(acc, acc.state[σ])
-    coefficients(A) = diis_solve_coefficients(acc, A, acc.conditioning_threshold)
+    coefficients(A) = diis_solve_coefficients(acc, A; conditioning_threshold=acc.conditioning_threshold, energybuffer=acc.state[1].energies)
+    #coefficients(A) = diis_solve_coefficients(acc, A, acc.state[1].energies)
     compute(c, σ) = compute_next_iterate_matrix!(acc.state[σ], c, spin(new_iterate, σ), acc.coefficient_threshold)
 
     # If sync_spins is enabled, we need to calculate the coefficients using the
     # merged matrix. This also means we need to remove the same number of
     # matrices from both histrories.
-    if acc.sync_spins & (spincount(iterstate.fock) == 2)
+    if acc.sync_spins & (spincount(iterate) == 2)
         A = merge_matrices(acc, matrix(1), matrix(2))
         c, matrixpurgecount = coefficients(A)
-        map(σ -> compute(c, σ), spinloop(iterstate.fock))
-        map(σ -> purge_from_state(acc.state[σ], matrixpurgecount), spinloop(iterstate.fock))
+        map(σ -> compute(c, σ), spinloop(iterate))
+        map(σ -> purge_from_state(acc.state[σ], matrixpurgecount), spinloop(iterate))
     else
         # If we are calculating the spins separately, each spin has its own coefficients.
-        for σ in spinloop(iterstate.fock)
+        for σ in spinloop(iterate)
             c, matrixpurgecount = coefficients(matrix(σ))
             compute(c, σ)
             purge_from_state(acc.state[σ], matrixpurgecount)

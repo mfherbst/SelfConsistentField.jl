@@ -20,6 +20,9 @@ mutable struct FockIterState <: ScfIterState
     # Orbital coefficients and energies
     orbcoeff::Union{Nothing,AbstractArray}
     orben::Union{Nothing,AbstractArray}
+
+    # Density
+    density::Union{Nothing,AbstractArray}
 end
 
 function get_iterate_matrix(iterate::FockIterState)
@@ -28,6 +31,6 @@ end
 
 function update_iterate_matrix(iterate::FockIterState, fock::AbstractArray)
     return FockIterState(fock, iterate.error_pulay, iterate.energies,
-                         iterate.orbcoeff, iterate.orben)
+                         iterate.orbcoeff, iterate.orben, iterate.density)
 end
 

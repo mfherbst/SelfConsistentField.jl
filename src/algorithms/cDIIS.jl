@@ -18,17 +18,25 @@ mutable struct cDIIS <: Accelerator
     end
 end
 
+function needs_error(::cDIIS)
+    true
+end
+
+function needs_density(::cDIIS)
+    false
+end
+
 """
     Solves the linear system after removing small eigenvalues to improve
     consistency.
 """
-function diis_solve_coefficients(::cDIIS, A::AbstractArray, threshold::Float64)
+function diis_solve_coefficients(::cDIIS, A::AbstractArray; conditioning_threshold::Float64, kwargs...)
     # Right hand side of the equation
     rhs = cdiis_build_rhs(size(A, 1))
 
     # calculate the eigenvalues of A and select sufficiently large eigenvalues
     λ, U = eigen(A)
-    mask = map(x -> norm(x) > threshold, λ)
+    mask = map(x -> norm(x) > conditioning_threshold, λ)
 
     if !all(mask)
         println("   Removing ", count(.! mask), " of ", length(mask), " eigenvalues from DIIS linear system.")
@@ -71,7 +79,7 @@ end
     A = B  1
         1† 0
 """
-function diis_build_matrix(::cDiis, state::DiisState)
+function diis_build_matrix(::cDIIS, state::DiisState)
     @assert state.n_diis_size > 0
     @assert state.iterate.length > 0
 
