@@ -18,23 +18,21 @@ end
     Calculates coefficients
 """
 function diis_solve_coefficients(::EDIIS, B::AbstractArray; energybuffer::AbstractArray, kwargs...)
-    println("test")
     m = size(B,1)
     E = map(energies -> energies["total"], energybuffer)
+
     function f(x)
         c = x.^2/sum(x.^2)
         E'*c - 1/2 * c'*B*c
     end
 
     function gradf(x)
-        Diagonal((x * sum(x.^2) - x.^3).*(2/(sum(x.^2)^2)))*(E - 1/2 *(B*c+diag(B).*c))
+        c = x.^2/sum(x.^2)
+        ((Diagonal(x * sum(x.^2)) - x.^2*x').*(2/(sum(x.^2)^2)))*(E - B*c)
+        #Diagonal((x * sum(x.^2) - x.^3).*(2/(sum(x.^2)^2)))*(E - 1/2 *(B*c+diag(B).*c))
     end
 
-    @show f(ones(m))
-    @show gradf(ones(m))
-
     res = optimize(f, gradf, ones(m), BFGS(); inplace = false)
-    @show res
     c = Optim.minimizer(res)
 
     return c, 0
