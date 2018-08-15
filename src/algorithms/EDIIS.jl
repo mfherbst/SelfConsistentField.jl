@@ -30,7 +30,7 @@ function diis_solve_coefficients(::EDIIS, B::AbstractArray; energybuffer::Abstra
     guess[1] = 1
 
     options = Optim.Options(x_tol = 10e-5)
-    @time res = optimize(f, guess, BFGS(), options; inplace = false, autodiff = :forward)
+    res = optimize(f, guess, BFGS(), options; inplace = false, autodiff = :forward)
     x = Optim.minimizer(res)
     c = x.^2/sum(x.^2)
 
@@ -84,7 +84,6 @@ function diis_build_matrix(::EDIIS, state::DiisState)
     # use a Circular Buffer again to store the rows.
 
     # Definition of matrix elements
-    #b(i,j) = tr(state.iterate[i] * state.density[i]) - tr(state.iterate[i] * state.density[j]) - tr(state.iterate[j] * state.iterate[i]) + tr(state.iterate[j] * state.iterate[j])
     b(i,j) = tr((state.iterate[i] - state.iterate[j]) * (state.density[i] - state.density[j]))
 
     # Fill the first row with newly calculated values and cache them
