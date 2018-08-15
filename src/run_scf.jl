@@ -39,7 +39,7 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
         # If converged end iteration
         if scfconv.is_converged break end
 
-        if scfconv.error_norm < 0.25 && !switched_to_diis
+        if scfconv.error_norm < 1e-2 && !switched_to_diis
             println("**** Switching on DIIS ****")
             damping = cDIIS(problem; kwargs...)
             switched_to_diis = true
