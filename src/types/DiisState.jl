@@ -37,15 +37,15 @@ end
     Removes 'count' Items from DiisState.
     Warning: Assumes you have already pushed a new iterate to the state.
 """
-function purge_from_state(state::DiisState, count::Int)
+function purge_from_state(acc::Accelerator, state::DiisState, count::Int)
     if count == 0
         return
     end
     for i in 1:count + 1
         pop!(state.iterate)
         pop!(state.iterationstate)
-        state.error != nothing ? pop!(state.error) : 0
-        state.density != nothing ? pop!(state.density) : 0
+        needs_error(acc) & (state.error != nothing) ? pop!(state.error) : 0
+        needs_density(acc) & (state.density != nothing) ? pop!(state.density) : 0
     end
 end
 
