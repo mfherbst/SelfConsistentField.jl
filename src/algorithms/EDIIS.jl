@@ -26,14 +26,19 @@ function diis_solve_coefficients(::EDIIS, B::AbstractArray; energybuffer::Abstra
         E'*c - 1/2 * c'*B*c
     end
 
-    function gradf(x)
-        c = x.^2/sum(x.^2)
-        ((Diagonal(x * sum(x.^2)) - x.^2*x').*(2/(sum(x.^2)^2)))*(E - B*c)
-        #Diagonal((x * sum(x.^2) - x.^3).*(2/(sum(x.^2)^2)))*(E - 1/2 *(B*c+diag(B).*c))
-    end
+    guess = ones(m) / m
+    guess[1] = 1
 
-    res = optimize(f, gradf, ones(m), BFGS(); inplace = false)
-    c = Optim.minimizer(res)
+    options = Optim.Options(x_tol = 10e-5)
+    @time res = optimize(f, guess, BFGS(), options; inplace = false, autodiff = :forward)
+    x = Optim.minimizer(res)
+    c = x.^2/sum(x.^2)
+
+    # If number of iterations in optimization is zero, reuse old matrix
+    if Optim.iterations(res) == 0
+        c = zeros(m)
+        c[1] = 1
+    end
 
     return c, 0
 end
@@ -79,7 +84,8 @@ function diis_build_matrix(::EDIIS, state::DiisState)
     # use a Circular Buffer again to store the rows.
 
     # Definition of matrix elements
-    b(i,j) = tr(state.iterate[i] * state.density[i]) - tr(state.iterate[i] * state.density[j]) - tr(state.iterate[j] * state.iterate[i]) + tr(state.iterate[j] * state.iterate[j])
+    #b(i,j) = tr(state.iterate[i] * state.density[i]) - tr(state.iterate[i] * state.density[j]) - tr(state.iterate[j] * state.iterate[i]) + tr(state.iterate[j] * state.iterate[j])
+    b(i,j) = tr((state.iterate[i] - state.iterate[j]) * (state.density[i] - state.density[j]))
 
     # Fill the first row with newly calculated values and cache them
     # in a newly created Circular Buffer
@@ -119,5 +125,5 @@ end
     together but the constraint must be kept as is.
 """
 function merge_matrices(::EDIIS, B1::AbstractArray, B2::AbstractArray)
-    B1 .+ B2
+    B1 + B2
 end
