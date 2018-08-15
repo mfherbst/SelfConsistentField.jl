@@ -2,7 +2,7 @@ using Printf
 
 # TODO Find a way to get the print statements out
 function run_scf(problem::ScfProblem, guess_density::AbstractArray;
-                 max_iter=100, damping_max_error_norm=0.25,
+                 max_iter=100, ediis_max_error_norm=0.1,
                  kwargs...)
     # Setup accelerators and SCF-global objects
     damping = EDIIS(problem; kwargs...)
@@ -39,8 +39,8 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
         # If converged end iteration
         if scfconv.is_converged break end
 
-        if scfconv.error_norm < 0.25 && !switched_to_diis
-            println("**** Switching on DIIS ****")
+        if scfconv.error_norm < ediis_max_error_norm && !switched_to_diis
+            println("**** Switching algorithms EDIIS -> cDIIS ****")
             damping = cDIIS(problem; kwargs...)
             switched_to_diis = true
         end
