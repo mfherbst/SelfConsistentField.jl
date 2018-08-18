@@ -31,22 +31,23 @@ Take a matrix which has either one or two spin components
 and concatenate the  α and β block after another
 """
 function concat_spin(mat)
-    Mα = Mβ = nothing
+    @assert ndims(mat) == 2 || ndims(mat) == 3
+
     if ndims(mat) == 2
         n_spin = size(mat, 2)
         @assert n_spin == 1 || n_spin == 2
 
         Mα = view(mat, :, 1)
         Mβ = view(mat, :, n_spin)
+        return [ Mα;  Mβ ]
     elseif ndims(mat) == 3
         n_spin = size(mat, 3)
         @assert n_spin == 1 || n_spin == 2
 
         Mα = view(mat, :, :, 1)
         Mβ = view(mat, :, :, n_spin)
+        [ Mα  Mβ ]
     end
-    @assert Mα != nothing && Mβ != nothing
-    [ Mα  Mβ ]
 end
 
 """
