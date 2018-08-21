@@ -31,7 +31,7 @@ function initialize(algorithm::Algorithm, problem::ScfProblem, guess_density::Ab
     # Construct report and add already existing log messages.
     pre_logger("setting up initial report", :debug,)
     report = Report(problem, state, algorithm, Vector{Vector{SubReport}}(), loglevel)
-    subreport = SubReport(Initializer, problem, missing, true, logmessages, nothing, report)
+    subreport = SubReport(Initializer(), problem, missing, logmessages, nothing, loglevel, report)
     push!(report.history, logmessages)
 
     # log a fancy header

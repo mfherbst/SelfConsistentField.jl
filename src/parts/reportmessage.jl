@@ -16,7 +16,7 @@ function log!(subreport::SubReport, msg::String, level::Symbol...)
 end
 
 function logger(subreport::SubReport)
-    args -> log!(subreport, args)
+    args -> log!(subreport, args...)
 end
 
 # During initialization no functional subreport is available yet. This function
