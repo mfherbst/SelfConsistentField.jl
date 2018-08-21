@@ -1,4 +1,4 @@
-struct Roothan end
+struct Roothan <: Algorithm end
 
 """
 Perform one step of the Roothaan algorithm if the Fock matrix is iterated
