@@ -5,9 +5,9 @@ function apply_hard_defaults(algorithm::Algorithm, defaults::Dict{Symbol, Any}, 
 end
 
 function initialize(algoritm::Algorithm, problem::ScfProblem, guess_density::AbstractArray;
-                    softdefaults::Dict{Symbol, Any} = Dict{Symbol, Any}(),
-                    harddefaults::Dict{Symbol, Any} = Dict{Symbol, Any}(),
-                    loglevel::Dict{Symbol, Set})
+                    softdefaults::Defaults = Defaults(),
+                    harddefaults::Defaults = Defaults(),
+                    loglevel::LogLevel)
 
     # As long as we do not have a complete report yet we cannot log messages easily
     # use the pre_logger infrastructure to create a logging function
