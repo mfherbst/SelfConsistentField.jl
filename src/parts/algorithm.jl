@@ -5,6 +5,16 @@ function (new_algorithm_type::Type{T})(old_algorithm::Algorithm, options...) whe
     ChainedAlgorithm(old_algorithm, new_algorithm_type(options...))
 end
 
+function iterate(::Algorithm, ::SubReport)
+    error("Please overload function appy")
+end
+
+function initialize_if_neccessary(alg::Algorithm, problem::ScfProblem, state::ScfIterState, softdefaults::Defaults)
+    if applicable(initialize, alg, problem, state, softdefaults)
+        initialize(algorithm, problem, subalgstate, softdefaults)
+    end
+end
+
 # Iteration functions for algorithms
 Base.iterate(report::Report) = report.state
 function Base.iterate(report::Report, ::ScfIterState)
