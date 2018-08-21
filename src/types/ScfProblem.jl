@@ -11,7 +11,7 @@ end
 """
 Type for defining a problem for an SCF
 """
-struct ScfProblem
+mutable struct ScfProblem
     # -----------------------
     # System information
 
@@ -48,6 +48,12 @@ struct ScfProblem
     # TODO Probably some factorisation of the overlap
     #      matrix is sensible, since it is used on the RHS a lot.
 
+    # -----------------------
+    # Functions
+
+    # computes next fock, error_pulay and energies
+    compute_fock_matrix::Function
+
     """
     Setup an ScfProblem taking some system-specific data as well as the terms
     of the problem matrix.
@@ -66,7 +72,8 @@ struct ScfProblem
                         restricted::Bool,
                         terms_0e::Dict{String,Number},
                         terms_1e::Dict{String,AbstractMatrix},
-                        terms_2e::Dict{String,TwoElectronBuilder})
+                        terms_2e::Dict{String,TwoElectronBuilder},
+                        compute_fock_matrix::Function)
         @assert length(n_elec) == 2 "n_elec needs to have exactly two elements"
 
         n_bas, _ = size(overlap)
@@ -80,6 +87,12 @@ struct ScfProblem
             h_core .+= term
         end
 
-        new(overlap, n_elec, n_orb, restricted, terms_0e, terms_1e, terms_2e, h_core)
+        # Since compute_fock_matrix needs the problem as an argument, do
+        # incomplete initialization and add the function afterwards
+        problem = new(overlap, n_elec, n_orb, restricted, terms_0e, terms_1e, terms_2e, h_core)
+        problem.compute_fock_matrix = density::AbstractArray -> compute_fock_matrix(problem, density)
+
+        # return new problem
+        problem
     end
 end

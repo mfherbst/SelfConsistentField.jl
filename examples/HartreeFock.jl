@@ -106,31 +106,43 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     print_info(problem)
     println()
 
+    #guess_method = "hcore"
     guess_method = "hcore"
     if startswith(integrals.discretisation.basis_type, "sturmian")
         guess_method = "random"
     end
+
+    harddefaults = Dict(
+        :max_error_norm=>5e-7,
+        :max_energy_total_change=>1.25e-07,
+    )
+
     guess_density = compute_guess(problem, system.coords, system.atom_numbers;
                                   method = guess_method)
     if ! problem.restricted && is_closed_shell(problem)
         break_spin_symmetry(guess_density)
     end
 
-    params = Dict(
-        :max_error_norm=>5e-7,
-        :max_energy_total_change=>1.25e-07,
-    )
-    res = run_scf(problem, guess_density; params...)
-
-    if ! res["converged"]
-        error("SCF failed to converge")
+    #ecdiis = FallbackMechanism(EDIIS(), cDIIS(); n_fallback_iterations = 5, fallback_predicate = nrtuff)
+    #accelerators = SwitchAlgorithm(EDIIS(), ecdiis, rp -> rp.convergence.error_norm < 10e-2)
+    #algorithm = ChainedAlgorithm(Roothan(), accelerators)
+    algorithm = ChainedAlgorithm(Roothan(), EDIIS())
+    loglevel = Dict{Symbol, Set}(:log => Set([:info, :debug, :warn]))
+    solver = initialize(algorithm, problem, guess_density; loglevel = loglevel)
+    for rp in solver
     end
-    compute_termwise_hf_energies!(res, problem)
 
-    print_results(problem, res)
-    if ofile != nothing
-        dump_molsturm_hdf5(integrals, res, ofile)
-    end
+    #res = run_scf(problem, guess_density; params...)
+
+    #if ! res["converged"]
+    #    error("SCF failed to converge")
+    #end
+    #compute_termwise_hf_energies!(res, problem)
+
+    #print_results(problem, res)
+    #if ofile != nothing
+    #    dump_molsturm_hdf5(integrals, res, ofile)
+    #end
 end
 
 function main()

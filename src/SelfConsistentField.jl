@@ -4,6 +4,7 @@ using LinearAlgebra
 using TensorOperations
 using DataStructures
 using Optim
+using Printf
 
 # Types
 export ScfProblem, TwoElectronBuilder, JKBuilderFromTensor
@@ -21,6 +22,9 @@ include("types/ScfIterState.jl")
 include("types/ScfProblem.jl")
 include("types/Accelerator.jl")
 include("types/DiisState.jl")
+include("types/Report.jl")
+include("types/Algorithm.jl")
+include("types/ReportMessage.jl")
 
 include("parts/compute_density.jl")
 include("parts/compute_orbitals.jl")
@@ -35,6 +39,7 @@ include("algorithms/Roothaan.jl")
 include("algorithms/FixedDamping.jl")
 include("algorithms/cDIIS.jl")
 include("algorithms/EDIIS.jl")
+include("algorithms/ChainedAlgorithm.jl")
 
 include("util/guess.jl")
 include("util/dump_molsturm_hdf5.jl")
