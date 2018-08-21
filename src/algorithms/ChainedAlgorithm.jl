@@ -4,6 +4,13 @@ mutable struct ChainedAlgorithm <: Algorithm
     done::Bool
 end
 
+function initialize(ca::ChainedAlgorithm, problem::ScfProblem, state::ScfIterState, softdefaults::Defaults)
+    subalgstate = copy(state)
+    for algorithm in ca.algorithms
+        subalgstate = initialize_if_neccessary(algorithm, problem, subalgstate, softdefaults)
+    end
+end
+
 function Base.iterate(chainedalg::ChainedAlgorithm, subreport::SubReport)
     chainedalg.done && return nothing
 
