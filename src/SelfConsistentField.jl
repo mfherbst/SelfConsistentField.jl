@@ -36,6 +36,7 @@ include("parts/assemble_hf_problem.jl")
 include("parts/misc.jl")
 include("parts/algorithm.jl")
 include("parts/reportmessage.jl")
+include("parts/initialize.jl")
 
 include("algorithms/JKBuilderFromTensor.jl")
 include("algorithms/Roothaan.jl")
