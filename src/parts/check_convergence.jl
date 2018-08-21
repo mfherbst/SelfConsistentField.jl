@@ -8,7 +8,7 @@ struct ScfConvergence
 end
 
 """
-Check wether an SCF is converged
+Check whether an SCF is converged
 """
 function check_convergence(olditerate::ScfIterState, newiterate::ScfIterState;
                            max_error_norm=5e-7,
