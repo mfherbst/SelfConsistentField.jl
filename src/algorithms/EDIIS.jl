@@ -1,17 +1,28 @@
 """
     EDIIS
 """
-mutable struct EDIIS <: Accelerator
+mutable struct EDIIS <: Algorithm
+    n_diis_size::Union{Missing, Int}
+    coefficient_threshold::Union{Missing,Float64}
     state::Tuple{DiisState, DiisState}
-    sync_spins::Bool
-    conditioning_threshold::Float64
-    coefficient_threshold::Float64
 
-    function EDIIS(problem::ScfProblem; n_diis_size = 5, sync_spins = true, conditioning_threshold = 1e-14, coefficient_threshold = 1e-6, kwargs...)
-        stateα = DiisState(n_diis_size)
-        stateβ = DiisState(n_diis_size)
-        new((stateα, stateβ), sync_spins, conditioning_threshold, coefficient_threshold)
+    function EDIIS(;n_diis_size::Union{Missing, Int} = missing, coefficient_threshold::Union{Missing, Float64} = missing)
+        new(n_diis_size, coefficient_threshold)
     end
+end
+
+function initialize(ediis::EDIIS, problem::ScfProblem, iterstate::ScfIterState, defaults::Defaults)
+    # TODO needs to become a separate function using reflection
+    ediis.n_diis_size = ismissing(ediis.n_diis_size) & :n_diis_size ∈ defaults ? defaults[:n_diis_size] : 5
+    ediis.coefficient_threshold = ismissing(ediis.coefficient_threshold) & :coefficient_threshold ∈ defaults ? defaults[:coefficient_threshold] : 10e-6
+
+    stateα = DiisState(n_diis_size)
+    ediis.state = spincount(get_iterate_matrix(iterstate)) == 2 ? (stateα, DiisState(n_diis_size)) : (stateα)
+end
+
+function iterate(ediis::EDIIS, rp::SubReport)
+    rp.state = compute_next_iterate(ediis, rp.source.state)
+    rp
 end
 
 """
