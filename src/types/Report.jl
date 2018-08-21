@@ -30,7 +30,7 @@ mutable struct SubReport
     problem::ScfProblem
     state::Union{Missing, ScfIterState}
     messages::Vector{ReportMessage}
-    datasource::Union{Nothing, SubReport}
+    source::Union{Nothing, SubReport}
     loglevel::LogLevel
     report::Report # There are cases in which algorithms need information about
                    # past events and the whole Algorithm setup
