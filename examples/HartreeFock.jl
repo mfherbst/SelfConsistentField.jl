@@ -125,8 +125,8 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
 
     #ecdiis = FallbackMechanism(EDIIS(), cDIIS(); n_fallback_iterations = 5, fallback_predicate = nrtuff)
     #accelerators = SwitchAlgorithm(EDIIS(), ecdiis, rp -> rp.convergence.error_norm < 10e-2)
-    #algorithm = ChainedAlgorithm(Roothan(), accelerators)
-    algorithm = ChainedAlgorithm(Roothan(), EDIIS())
+    #algorithm = ChainedAlgorithm(Roothaan(), accelerators)
+    algorithm = ChainedAlgorithm(Roothaan(), EDIIS())
     loglevel = Dict{Symbol, Set}(:log => Set([:info, :debug, :warn]))
     solver = initialize(algorithm, problem, guess_density; loglevel = loglevel)
     for rp in solver
