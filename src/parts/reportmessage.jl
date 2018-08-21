@@ -11,7 +11,6 @@ function log!(subreport::SubReport, msg::String, data::Any, level::Symbol...)
     data
 end
 
-
 function log!(subreport::SubReport, msg::String, level::Symbol...)
     log!(subreport, msg, nothing, level)
 end
@@ -24,6 +23,7 @@ end
 # returns a logging function with a fake subreport which supports everything
 # the logging function needs.
 function logger(logmessages::Vector{ReportMessage}, loglevel::Dict{Symbol, Set})
-    fakesubreport = SubReport(Initializer, problem, missing, false, logmessages, nothing, Report(problem, ScfIterState([], [], Dict{String, Float64}(), nothing, nothing, nothing), [], [[]], loglevel))
-    logger(fakesubreport)
+    #fakesubreport = SubReport(Initializer(), ScfProblem(), missing, false, logmessages, nothing, Report(problem, FockIterState([], [], Dict{String, Float64}(), nothing, nothing, nothing), [], [[]], loglevel))
+    # TODOneeds to be implemented somehow
+    (args...) -> println(args)
 end

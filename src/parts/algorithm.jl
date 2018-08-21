@@ -10,9 +10,7 @@ function iterate(::Algorithm, ::SubReport)
 end
 
 function initialize_if_neccessary(alg::Algorithm, problem::ScfProblem, state::ScfIterState, softdefaults::Defaults)
-    if applicable(initialize, alg, problem, state, softdefaults)
-        initialize(algorithm, problem, subalgstate, softdefaults)
-    end
+    applicable(initialize, alg, problem, state, softdefaults) ? initialize(alg, problem, state, softdefaults) : state
 end
 
 # Iteration functions for algorithms

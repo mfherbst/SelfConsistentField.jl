@@ -13,11 +13,11 @@ end
 
 function initialize(ediis::EDIIS, problem::ScfProblem, iterstate::ScfIterState, defaults::Defaults)
     # TODO needs to become a separate function using reflection
-    ediis.n_diis_size = ismissing(ediis.n_diis_size) & :n_diis_size ∈ defaults ? defaults[:n_diis_size] : 5
-    ediis.coefficient_threshold = ismissing(ediis.coefficient_threshold) & :coefficient_threshold ∈ defaults ? defaults[:coefficient_threshold] : 10e-6
+    ediis.n_diis_size = ismissing(ediis.n_diis_size) & haskey(defaults,:n_diis_size) ? defaults[:n_diis_size] : 5
+    ediis.coefficient_threshold = ismissing(ediis.coefficient_threshold) & haskey(defaults,:coefficient_threshold) ? defaults[:coefficient_threshold] : 10e-6
 
-    stateα = DiisState(n_diis_size)
-    ediis.state = spincount(get_iterate_matrix(iterstate)) == 2 ? (stateα, DiisState(n_diis_size)) : (stateα)
+    stateα = DiisState(ediis.n_diis_size)
+    ediis.state = spincount(get_iterate_matrix(iterstate)) == 2 ? (stateα, DiisState(ediis.n_diis_size)) : (stateα, stateα)
 end
 
 function iterate(ediis::EDIIS, rp::SubReport)

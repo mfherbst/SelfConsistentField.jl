@@ -8,9 +8,8 @@ mutable struct ChainedAlgorithm <: Algorithm
 end
 
 function initialize(ca::ChainedAlgorithm, problem::ScfProblem, state::ScfIterState, softdefaults::Defaults)
-    subalgstate = copy(state)
     for algorithm in ca.algorithms
-        subalgstate = initialize_if_neccessary(algorithm, problem, subalgstate, softdefaults)
+        state = initialize_if_neccessary(algorithm, problem, state, softdefaults)
     end
 end
 
@@ -21,9 +20,9 @@ function Base.iterate(chainedalg::ChainedAlgorithm, subreport::SubReport)
     done = true
 
     # Copy the subreport for the new iteration
-    subsubreport = copy(subreport)
+    subsubreport = subreport
     for algorithm in chainedalg.algorithms
-        subsubreport = SubReport(missing, report.problem, missing, Vector{ReportEntry}(), subsubreport, subreport.loglevel, report)
+        subsubreport = SubReport(missing, report.problem, missing, Vector{ReportMessage}(), subsubreport, subreport.loglevel, report)
         res = iterate(algorithm, subsubreport)
 
         # if the iteration is not done, reset done variable

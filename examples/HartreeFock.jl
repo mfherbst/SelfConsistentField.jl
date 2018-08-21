@@ -128,7 +128,7 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     #algorithm = ChainedAlgorithm(Roothaan(), accelerators)
     algorithm = ChainedAlgorithm(Roothaan(), EDIIS())
     loglevel = Dict{Symbol, Set}(:log => Set([:info, :debug, :warn]))
-    solver = initialize(algorithm, problem, guess_density; loglevel = loglevel)
+    solver = initialize(algorithm, problem, guess_density; :loglevel => loglevel)
     for rp in solver
     end
 
