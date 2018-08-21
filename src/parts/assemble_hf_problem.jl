@@ -74,6 +74,6 @@ function assemble_hf_problem(system, integrals; n_orb=nothing, restricted=nothin
     end
 
     return ScfProblem(overlap, system.n_elec, n_orb, restricted,
-                      terms_0e, terms_1e, terms_2e, compute_fock_matrix)
+                      terms_0e, terms_1e, terms_2e)
 end
 
