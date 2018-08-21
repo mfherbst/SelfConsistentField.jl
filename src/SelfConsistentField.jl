@@ -9,6 +9,9 @@ using Printf
 # Types
 export ScfProblem, TwoElectronBuilder, JKBuilderFromTensor
 
+# Algorithms
+export ChainedAlgorithm, Roothaan, EDIIS, initialize
+
 # Functions
 export run_scf, compute_nuclear_repulsion, assemble_hf_problem
 export compute_pulay_error, is_closed_shell
