@@ -21,6 +21,7 @@ function Base.iterate(report::Report, ::ScfIterState)
     
     # If the underlying algorithm is done, we are done :-)
     if res == nothing
+        println("tatitata")
         log!(subreport, "Algorithm is done", :debug)
         return nothing
     end
