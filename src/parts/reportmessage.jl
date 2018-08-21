@@ -1,22 +1,26 @@
 # Logging
-function log!(subreport::SubReport, msg::String, data::Any, level::Symbol...)
-    if any(map(x -> x ∈ subreport.report.loglevel[:report], level))
-        push!(subreport.messages, ReportMessage(msg, data, :memory))
+function log!(rp::SubReport, msg::String, data::Any, level::Symbol...)
+    if haskey(rp.loglevel, :report)
+        if !isempty(level ∩ rp.loglevel[:report])
+            push!(rp.messages, ReportMessage(msg, data, :memory))
+        end
     end
-    if any(map(x -> x ∈ subreport.report.loglevel[:stdout], level))
-        print(level[end], ": ", msg, " ")
-        show(stdout, MIME("text/plain"), data)
-        println()
+    if haskey(rp.loglevel, :stdout)
+        if !isempty(level ∩ rp.loglevel[:stdout])
+            print(level[end], ": ", msg, " ")
+            show(stdout, MIME("text/plain"), data)
+            println()
+        end
     end
     data
 end
 
-function log!(subreport::SubReport, msg::String, level::Symbol...)
-    log!(subreport, msg, nothing, level)
+function log!(rp::SubReport, msg::String, level::Symbol...)
+    log!(rp, msg, nothing, level...)
 end
 
-function logger(subreport::SubReport)
-    args -> log!(subreport, args...)
+function logger(rp::SubReport)
+    args -> log!(rp, args...)
 end
 
 # During initialization no functional subreport is available yet. This function
