@@ -1,5 +1,8 @@
 abstract type Algorithm end
 
+const LogLevel = Dict{Symbol, Set}
+const Defaults = Dict{Symbol, Any}
+
 mutable struct ReportMessage
     msg::String
     data::Any
@@ -19,7 +22,7 @@ mutable struct Report{T}
     state::ScfIterState
     algorithm::Algorithm
     history::Vector{T}
-    loglevel::Dict{Symbol, Set}
+    loglevel::LogLevel
 end
 
 mutable struct SubReport
@@ -28,7 +31,7 @@ mutable struct SubReport
     state::Union{Missing, ScfIterState}
     messages::Vector{ReportMessage}
     datasource::Union{Nothing, SubReport}
-    loglevel::Dict{Symbol, Set}
+    loglevel::LogLevel
     report::Report # There are cases in which algorithms need information about
                    # past events and the whole Algorithm setup
 end
