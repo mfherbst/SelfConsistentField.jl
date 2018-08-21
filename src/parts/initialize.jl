@@ -24,7 +24,7 @@ function initialize(algoritm::Algorithm, problem::ScfProblem, guess_density::Abs
     pre_logger("begin initializing algorithms", :debug, :subalginit)
     for subalg in algorithm
         pre_logger("initializing " * String(repr("text/plain", Stuff)), :debug, :subalginit)
-        state = initialize(subalg, problem, state, softdefaults)
+        state = initialize_if_neccessary(subalg, problem, state, softdefaults)
     end
     pre_logger("done initializing algorithms", :debug, :subalginit)
 
