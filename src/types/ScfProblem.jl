@@ -11,7 +11,7 @@ end
 """
 Type for defining a problem for an SCF
 """
-mutable struct ScfProblem
+struct ScfProblem
     # -----------------------
     # System information
 
@@ -72,8 +72,7 @@ mutable struct ScfProblem
                         restricted::Bool,
                         terms_0e::Dict{String,Number},
                         terms_1e::Dict{String,AbstractMatrix},
-                        terms_2e::Dict{String,TwoElectronBuilder},
-                        compute_fock_matrix::Function)
+                        terms_2e::Dict{String,TwoElectronBuilder})
         @assert length(n_elec) == 2 "n_elec needs to have exactly two elements"
 
         n_bas, _ = size(overlap)
@@ -87,12 +86,6 @@ mutable struct ScfProblem
             h_core .+= term
         end
 
-        # Since compute_fock_matrix needs the problem as an argument, do
-        # incomplete initialization and add the function afterwards
-        problem = new(overlap, n_elec, n_orb, restricted, terms_0e, terms_1e, terms_2e, h_core)
-        problem.compute_fock_matrix = density::AbstractArray -> compute_fock_matrix(problem, density)
-
-        # return new problem
-        problem
+        new(overlap, n_elec, n_orb, restricted, terms_0e, terms_1e, terms_2e, h_core)
     end
 end
