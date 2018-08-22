@@ -1,13 +1,25 @@
 #
 # Simple damping
 #
-mutable struct FixedDamping <: Accelerator
-    damping::Float64                   # Damping coefficient
+mutable struct FixedDamping <: Algorithm
+    damping::Union{Missing, Float64}                   # Damping coefficient
 
     prev_iterate::Union{Nothing,ScfIterState}  # Previous iterate
-    function FixedDamping(problem::ScfProblem; damping_value=0.4, kwargs...)
+    function FixedDamping(; damping_value = missing)
         new(damping_value, nothing)
     end
+end
+
+function initialize(fd::FixedDamping, problem::ScfProblem, iterstate::ScfIterState, defaults::Defaults)
+    # TODO needs to become a separate function using reflection
+    fd.damping = ismissing(fd.damping) & haskey(defaults,:damping_value) ? defaults[:damping_value] : 0.4
+    return iterstate
+end
+
+function iterate(fd::FixedDamping, subreport::SubReport)
+    rp = new_subreport(subreport)
+    rp.state = compute_next_iterate(fd, rp.source.state)
+    return rp
 end
 
 function compute_next_iterate(acc::FixedDamping, iterate::ScfIterState)
