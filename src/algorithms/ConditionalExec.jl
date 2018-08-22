@@ -8,5 +8,5 @@ function initialize(ce::ConditionalExec, problem::ScfProblem, state::ScfIterStat
 end
 
 function iterate(ce::ConditionalExec, subreport::SubReport)
-    ce.condition(subreport) ? iterate(ce.algorithm, subreport) : nothing
+    ce.condition(subreport) ? iterate(ce.algorithm, subreport) : subreport
 end
