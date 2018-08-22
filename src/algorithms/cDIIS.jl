@@ -30,13 +30,13 @@ end
     Solves the linear system after removing small eigenvalues to improve
     consistency.
 """
-function diis_solve_coefficients(::cDIIS, A::AbstractArray; conditioning_threshold::Float64, kwargs...)
+function diis_solve_coefficients(cdiis::cDIIS, A::AbstractArray)
     # Right hand side of the equation
     rhs = cdiis_build_rhs(size(A, 1))
 
     # calculate the eigenvalues of A and select sufficiently large eigenvalues
     λ, U = eigen(A)
-    mask = map(x -> norm(x) > conditioning_threshold, λ)
+    mask = map(x -> norm(x) > cdiis.conditioning_threshold, λ)
 
     if !all(mask)
         println("   Removing ", count(.! mask), " of ", length(mask), " eigenvalues from DIIS linear system.")

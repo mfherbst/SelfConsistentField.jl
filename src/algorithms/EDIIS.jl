@@ -5,6 +5,7 @@ mutable struct EDIIS <: Algorithm
     n_diis_size::Union{Missing, Int}
     coefficient_threshold::Union{Missing,Float64}
     state::Tuple{DiisState, DiisState}
+    # TODO rename state to history
 
     function EDIIS(;n_diis_size::Union{Missing, Int} = missing, coefficient_threshold::Union{Missing, Float64} = missing)
         new(n_diis_size, coefficient_threshold)
@@ -18,19 +19,22 @@ function initialize(ediis::EDIIS, problem::ScfProblem, iterstate::ScfIterState, 
 
     stateα = DiisState(ediis.n_diis_size)
     ediis.state = spincount(get_iterate_matrix(iterstate)) == 2 ? (stateα, DiisState(ediis.n_diis_size)) : (stateα, stateα)
+    return iterstate
 end
 
-function iterate(ediis::EDIIS, rp::SubReport)
+function iterate(ediis::EDIIS, subreport::SubReport)
+    rp = new_subreport(subreport)
     rp.state = compute_next_iterate(ediis, rp.source.state)
-    rp
+    return rp
 end
 
 """
     Calculates coefficients
 """
-function diis_solve_coefficients(::EDIIS, B::AbstractArray; energybuffer::AbstractArray, kwargs...)
+function diis_solve_coefficients(ediis::EDIIS, B::AbstractArray)
     m = size(B,1)
-    E = map(energies -> energies["total"], energybuffer)
+    # TODO put the energies somewhere else
+    E = map(energies -> energies["total"], ediis.state[1].energies)
 
     function f(x)
         c = x.^2/sum(x.^2)

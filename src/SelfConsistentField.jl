@@ -23,9 +23,9 @@ export break_spin_symmetry
 
 include("types/ScfIterState.jl")
 include("types/ScfProblem.jl")
+include("types/Report.jl")
 include("types/Accelerator.jl")
 include("types/DiisState.jl")
-include("types/Report.jl")
 
 include("parts/compute_density.jl")
 include("parts/compute_orbitals.jl")
@@ -37,6 +37,7 @@ include("parts/misc.jl")
 include("parts/algorithm.jl")
 include("parts/reportmessage.jl")
 include("parts/initialize.jl")
+include("parts/new_subreport.jl")
 
 include("algorithms/JKBuilderFromTensor.jl")
 include("algorithms/Roothaan.jl")

@@ -11,9 +11,10 @@ function initialize(ca::ChainedAlgorithm, problem::ScfProblem, state::ScfIterSta
     for algorithm in ca.algorithms
         state = initialize_if_neccessary(algorithm, problem, state, softdefaults)
     end
+    return state
 end
 
-function Base.iterate(chainedalg::ChainedAlgorithm, subreport::SubReport)
+function iterate(chainedalg::ChainedAlgorithm, subreport::SubReport)
     chainedalg.done && return nothing
 
     # track if all algorithms are done
@@ -22,16 +23,14 @@ function Base.iterate(chainedalg::ChainedAlgorithm, subreport::SubReport)
     # Copy the subreport for the new iteration
     subsubreport = subreport
     for algorithm in chainedalg.algorithms
-        subsubreport = SubReport(missing, report.problem, missing, Vector{ReportMessage}(), subsubreport, subreport.loglevel, report)
-        res = iterate(algorithm, subsubreport)
+        subsubreport = iterate(algorithm, subsubreport)
 
         # if the iteration is not done, reset done variable
-        if res != nothing
+        if subsubreport != nothing
             done = false
             push!(chainedalg.reports, subsubreport)
         end
     end
 
-    subreport.state = subsubreport.state
-    (chainedalg, subreport)
+    (chainedalg, subsubreport)
 end

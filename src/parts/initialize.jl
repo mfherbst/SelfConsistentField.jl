@@ -18,11 +18,11 @@ function initialize(algorithm::Algorithm, problem::ScfProblem, guess_density::Ab
     # Build initial iteration state
     pre_logger("Building initial iterate", :debug, :subalginit)
     fock, error_pulay, energies = compute_fock_matrix(problem, guess_density)
-    state = FockIterState(fock, error_pulay, energies, nothing, nothing, guess_density)
+    pre_initstate = FockIterState(fock, error_pulay, energies, nothing, nothing, guess_density)
 
     # Run initial algorithm configuration
     pre_logger("initializing " * String(repr("text/plain", typeof(algorithm))), :debug, :subalginit)
-    initialize_if_neccessary(algorithm, problem, state, softdefaults)
+    initstate = initialize_if_neccessary(algorithm, problem, pre_initstate, softdefaults)
 
     # Hard defaults override the values produced by automatic algorithm
     # configuration
@@ -30,9 +30,9 @@ function initialize(algorithm::Algorithm, problem::ScfProblem, guess_density::Ab
 
     # Construct report and add already existing log messages.
     pre_logger("setting up initial report", :debug,)
-    report = Report(problem, state, algorithm, Vector{Vector{SubReport}}(), loglevel)
-    subreport = SubReport(Initializer(), problem, missing, logmessages, nothing, loglevel, report)
-    push!(report.history, logmessages)
+    report = Report(problem, initstate, algorithm, Vector{SubReport}(), loglevel)
+    subreport = SubReport(Initializer(), problem, initstate, logmessages, nothing, loglevel, report)
+    push!(report.history, subreport)
 
     # log a fancy header
     log!(subreport, @sprintf("%5s %14s %14s %14s %15s %12s\n", "iter", "e1e", "e2e", "etot", "scf_error", "n_applies"), :info)

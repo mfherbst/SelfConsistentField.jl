@@ -8,7 +8,7 @@ function log!(rp::SubReport, msg::String, data::Any, level::Symbol...)
     if haskey(rp.loglevel, :stdout)
         if !isempty(level ∩ rp.loglevel[:stdout])
             print(level[end], ": ", msg, " ")
-            show(stdout, MIME("text/plain"), data)
+            data != nothing && show(stdout, MIME("text/plain"), data)
             println()
         end
     end

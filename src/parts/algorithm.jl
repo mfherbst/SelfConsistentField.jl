@@ -6,7 +6,7 @@ function (new_algorithm_type::Type{T})(old_algorithm::Algorithm, options...) whe
 end
 
 function iterate(::Algorithm, ::SubReport)
-    error("Please overload function appy")
+    error("Please overload the function iterate")
 end
 
 function initialize_if_neccessary(alg::Algorithm, problem::ScfProblem, state::ScfIterState, softdefaults::Defaults)
@@ -14,28 +14,28 @@ function initialize_if_neccessary(alg::Algorithm, problem::ScfProblem, state::Sc
 end
 
 # Iteration functions for algorithms
-Base.iterate(report::Report) = report.state
-function Base.iterate(report::Report, ::ScfIterState)
-    subreport = SubReport(missing, report.problem, missing, Vector{ReportMessage}(), report.history[end], report.loglevel, report)
-    res = iterate(report.algorithm, subreport)
+Base.iterate(report::Report) = (report, report.history[end])
+function Base.iterate(report::Report, lastsubreport::SubReport)
+    iterresult = iterate(report.algorithm, lastsubreport)
     
     # If the underlying algorithm is done, we are done :-)
-    if res == nothing
-        println("tatitata")
-        log!(subreport, "Algorithm is done", :debug)
+    if iterresult == nothing
+        log!(report.history[end], "Algorithm is done", :debug)
         return nothing
     end
 
-    # calculate convergence information
-    report.convergence = check_convergence(report.iterate, subreport.iterate)
-
     # store results
-    report.state = subreport.state
-    push!(report.history, res[2])
+    (algorithm, subreport) = iterresult
+    push!(report.history, subreport)
+
+    # calculate convergence information
+    report.convergence = check_convergence(report.state, subreport.state)
 
     # log results
     log!(subreport, @sprintf(" %4d %14.8f %14.8f %14.8f %16.9g %12d\n", length(history), report.convergence.energies["1e"], report.convergence.energies["2e"], "etot", "scf_error", "n_applies"), :info)
 
-    return report, res[2]
+    # update state reference in report
+    report.state = subreport.state
+    return (report, subreport)
 end
 
