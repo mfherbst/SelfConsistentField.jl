@@ -10,7 +10,7 @@ using Printf
 export ScfProblem, TwoElectronBuilder, JKBuilderFromTensor
 
 # Algorithms
-export ChainedAlgorithm, ConditionalExec, Roothaan, cDIIS, EDIIS, initialize
+export ChainedAlgorithm, ConditionalExec, ChangeAlgorithm, Roothaan, cDIIS, EDIIS, initialize
 
 # Functions
 export run_scf, compute_nuclear_repulsion, assemble_hf_problem
@@ -47,6 +47,7 @@ include("algorithms/cDIIS.jl")
 include("algorithms/EDIIS.jl")
 include("algorithms/ChainedAlgorithm.jl")
 include("algorithms/ConditionalExec.jl")
+include("algorithms/ChangeAlgorithm.jl")
 
 include("util/guess.jl")
 include("util/dump_molsturm_hdf5.jl")
