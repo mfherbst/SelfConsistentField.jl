@@ -5,17 +5,35 @@
 """
     cDIIS
 """
-mutable struct cDIIS <: Accelerator
+mutable struct cDIIS <: Algorithm
+    n_diis_size::Union{Missing, Int}
+    sync_spins::Union{Missing, Bool}
+    conditioning_threshold::Union{Missing, Float64}
+    coefficient_threshold::Union{Missing, Float64}
     state::Tuple{DiisState, DiisState}
-    sync_spins::Bool
-    conditioning_threshold::Float64
-    coefficient_threshold::Float64
+    # TODO rename state to history
 
-    function cDIIS(problem::ScfProblem; n_diis_size = 5, sync_spins = true, conditioning_threshold = 1e-14, coefficient_threshold = 1e-6, kwargs...)
-        stateα = DiisState(n_diis_size)
-        stateβ = DiisState(n_diis_size)
-        new((stateα, stateβ), sync_spins, conditioning_threshold, coefficient_threshold)
+    function cDIIS(;n_diis_size = missing, sync_spins = missing, conditioning_threshold = missing, coefficient_threshold = missing)
+        new(n_diis_size, sync_spins, conditioning_threshold, coefficient_threshold)
     end
+end
+
+function initialize(cdiis::cDIIS, problem::ScfProblem, iterstate::ScfIterState, defaults::Defaults)
+    # TODO needs to become a separate function using reflection
+    cdiis.n_diis_size = ismissing(cdiis.n_diis_size) & haskey(defaults,:n_diis_size) ? defaults[:n_diis_size] : 5
+    cdiis.sync_spins = ismissing(cdiis.sync_spins) & haskey(defaults,:sync_spins) ? defaults[:sync_spins] : true
+    cdiis.conditioning_threshold = ismissing(cdiis.conditioning_threshold) & haskey(defaults,:conditioning_threshold) ? defaults[:conditioning_threshold] : 1e-14
+    cdiis.coefficient_threshold = ismissing(cdiis.coefficient_threshold) & haskey(defaults,:coefficient_threshold) ? defaults[:coefficient_threshold] : 10e-6
+
+    stateα = DiisState(cdiis.n_diis_size)
+    cdiis.state = spincount(get_iterate_matrix(iterstate)) == 2 ? (stateα, DiisState(cdiis.n_diis_size)) : (stateα, stateα)
+    return iterstate
+end
+
+function iterate(cdiis::cDIIS, subreport::SubReport)
+    rp = new_subreport(subreport)
+    rp.state = compute_next_iterate(cdiis, rp.source.state)
+    return rp
 end
 
 function needs_error(::cDIIS)
