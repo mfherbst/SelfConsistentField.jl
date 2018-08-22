@@ -10,7 +10,7 @@ using Printf
 export ScfProblem, TwoElectronBuilder, JKBuilderFromTensor
 
 # Algorithms
-export ChainedAlgorithm, ConditionalExec, Roothaan, EDIIS, initialize
+export ChainedAlgorithm, ConditionalExec, Roothaan, cDIIS, EDIIS, initialize
 
 # Functions
 export run_scf, compute_nuclear_repulsion, assemble_hf_problem
