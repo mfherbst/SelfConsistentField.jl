@@ -136,10 +136,22 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
         !ismissing(convergence) ? convergence.error_norm < 10e-2 : false
     end
 
+    function enable_damping(rp::SelfConsistentField.SubReport)
+        convergence = rp.report.convergence
+        !ismissing(convergence) ? convergence.error_norm > 10e-1 : true
+    end
+
+    function enable_cdiis(rp::SelfConsistentField.SubReport)
+        convergence = rp.report.convergence
+        !ismissing(convergence) ? convergence.error_norm > 10e-8 : true
+    end
+
     #algorithm = ConditionalExec(ChainedAlgorithm(Roothaan(), ChangeAlgorithm(EDIIS(), cDIIS(), switch_to_diis)), !converged)
-    algorithm = ChangeAlgorithm(EDIIS(), cDIIS(), switch_to_diis)
-    algorithm = ChainedAlgorithm(Roothaan(), algorithm)
-    algorithm = ConditionalExec(algorithm , !converged)
+    cdiis = ConditionalExec(cDIIS(), enable_cdiis)
+    diis = ChangeAlgorithm(EDIIS(), cdiis, switch_to_diis)
+    damping = ConditionalExec(FixedDamping(), enable_damping)
+    algorithm = ChainedAlgorithm(Roothaan(), diis)
+    algorithm = StopCondition(algorithm , !converged)
 
     loglevel = Dict{Symbol, Set}(:stdout => Set([:info, :debug, :warn]))
     solver = initialize(algorithm, problem, guess_density; :loglevel => loglevel)
