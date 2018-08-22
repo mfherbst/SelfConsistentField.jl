@@ -1,5 +1,5 @@
 """Abstract type for SCF convergence accelerators"""
-abstract type Accelerator end
+abstract type Accelerator <: Algorithm end
 
 """
 Use the knowledge of the previous iterates to refine

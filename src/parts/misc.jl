@@ -19,8 +19,9 @@ end
 """
     Iterator for indices of spins
 """
-function spinloop(obj::Union{AbstractArray, Accelerator})
-    typeof(obj) == Accelerator ?
-        (1:spincount(obj.state.iterate)) :
-        (1:spincount(obj))
+function spinloop(obj::AbstractArray)
+    1:spincount(obj)
+end
+function spinloop(state::ScfIterState)
+    1:spincount(state.iterate)
 end
