@@ -126,7 +126,11 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     #ecdiis = FallbackMechanism(EDIIS(), cDIIS(); n_fallback_iterations = 5, fallback_predicate = nrtuff)
     #accelerators = SwitchAlgorithm(EDIIS(), ecdiis, rp -> rp.convergence.error_norm < 10e-2)
     #algorithm = ChainedAlgorithm(Roothaan(), accelerators)
-    algorithm = ChainedAlgorithm(Roothaan(), EDIIS())
+    function converged(rp::SelfConsistentField.SubReport)
+        convergence = rp.report.convergence
+        !ismissing(convergence) ? convergence.error_norm < 10e-12 : false
+    end
+    algorithm = ConditionalExec(ChainedAlgorithm(Roothaan(), EDIIS()), !converged)
     loglevel = Dict{Symbol, Set}(:stdout => Set([:info, :debug, :warn]))
     solver = initialize(algorithm, problem, guess_density; :loglevel => loglevel)
     for rp in solver
