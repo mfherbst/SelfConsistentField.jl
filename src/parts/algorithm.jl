@@ -32,7 +32,7 @@ function Base.iterate(report::Report, lastsubreport::SubReport)
     report.convergence = check_convergence(report.state, subreport.state)
 
     # log results
-    log!(subreport, @sprintf(" %4d %14.8f %14.8f %14.8f %16.9g %12d\n", length(history), report.convergence.energies["1e"], report.convergence.energies["2e"], "etot", "scf_error", "n_applies"), :info)
+    log!(subreport, @sprintf(" %4d %14.8f %14.8f %14.8f %16.9g %12d\n", length(report.history), report.state.energies["1e"], report.state.energies["2e"], report.state.energies["total"], report.convergence.error_norm, NaN), :info)
 
     # update state reference in report
     report.state = subreport.state

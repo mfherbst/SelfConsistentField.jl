@@ -20,6 +20,7 @@ ReportMessage(msg::String) = ReportMessage(msg, nothing, :memory)
 mutable struct Report{T}
     problem::ScfProblem
     state::ScfIterState
+    convergence::Union{Missing, ScfConvergence}
     algorithm::Algorithm
     history::Vector{T}
     loglevel::LogLevel
@@ -36,4 +37,4 @@ mutable struct SubReport
                    # past events and the whole Algorithm setup
 end
 
-Report(p,s,a,h,l) = Report{SubReport}(p,s,a,h,l)
+Report(p,s,c,a,h,l) = Report{SubReport}(p,s,c,a,h,l)
