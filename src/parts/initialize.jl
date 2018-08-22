@@ -35,7 +35,7 @@ function initialize(algorithm::Algorithm, problem::ScfProblem, guess_density::Ab
     push!(report.history, subreport)
 
     # log a fancy header
-    log!(subreport, @sprintf("%5s %14s %14s %14s %15s %12s\n", "iter", "e1e", "e2e", "etot", "scf_error", "n_applies"), :info)
+    log!(subreport, @sprintf("%5s %14s %14s %14s %15s %12s", "iter", "e1e", "e2e", "etot", "scf_error", "n_applies"), :info)
 
     # return new report
     report
