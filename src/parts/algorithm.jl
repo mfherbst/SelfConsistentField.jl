@@ -1,9 +1,21 @@
 # Algorithms need to be initialized
 Base.iterate(::T) where {T <: Algorithm} = throw("You need to initialize the algorithm first")
 
-function (new_algorithm_type::Type{T})(old_algorithm::Algorithm, options...) where {T<:Algorithm}
-    ScfPipeline(old_algorithm, new_algorithm_type(options...))
+"""
+    In case we have an algorithm with an execution condition in Tuple form it
+    needs to be converted into an algorithm before application
+"""
+function (new_algorithm_type::Type{T})(args...) where {T<:Algorithm}
+    conv_to_alg(i) = args[i] isa Tuple{Algorithm, Function} ?
+                        ConditionalExec(args[i][1], args[i][2]) :
+                        args[i]
+
+    new_algorithm_type(ntuple(conv_to_alg, length(args))...)
 end
+
+#function (new_algorithm_type::Type{T})(old_algorithm::Algorithm, options...) where {T<:Algorithm}
+#    ScfPipeline(old_algorithm, new_algorithm_type(options...))
+#end
 
 function iterate(::Algorithm, ::SubReport)
     error("Please overload the function iterate")
