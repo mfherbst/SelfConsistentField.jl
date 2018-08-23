@@ -11,8 +11,8 @@ mutable struct FixedDamping <: Algorithm
 end
 
 function initialize(fd::FixedDamping, problem::ScfProblem, iterstate::ScfIterState, params::Parameters)
-    # TODO needs to become a separate function using reflection
-    fd.damping = coalesce(fd.damping, get(params, :damping_value, nothing), 0.4)
+    # TODO needs to be implemented the same way in all other algorithms
+    fd.damping = coalesce(fd.damping, get(params, :damping_value, missing), 0.4)
     return iterstate
 end
 
