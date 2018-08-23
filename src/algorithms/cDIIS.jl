@@ -33,7 +33,7 @@ end
 function iterate(cdiis::cDIIS, subreport::SubReport)
     rp = new_subreport(subreport)
     rp.state = compute_next_iterate(cdiis, rp.source.state)
-    return rp
+    return cdiis, rp
 end
 
 function needs_error(::cDIIS)

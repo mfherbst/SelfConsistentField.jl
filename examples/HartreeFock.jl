@@ -147,11 +147,33 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     end
 
     #algorithm = ConditionalExec(ChainedAlgorithm(Roothaan(), ChangeAlgorithm(EDIIS(), cDIIS(), switch_to_diis)), !converged)
-    cdiis = ConditionalExec(cDIIS(), enable_cdiis)
-    diis = ChangeAlgorithm(EDIIS(), cdiis, switch_to_diis)
-    damping = ConditionalExec(FixedDamping(), enable_damping)
-    algorithm = ChainedAlgorithm(Roothaan(), diis)
-    algorithm = StopCondition(algorithm , !converged)
+    #cdiis = ConditionalExec(cDIIS(), enable_cdiis)
+    #diis = Barrier(EDIIS(), cdiis, switch_to_diis)
+    #damping = ConditionalExec(FixedDamping(), enable_damping)
+    #algorithm = ScfPipeline(Roothaan(), diis, damping)
+    #algorithm = 
+   
+    damping = FixedDamping(), enable_damping
+    cdiis = cDIIS(), enable_cdiis
+    acceleration = Barrier(EDIIS(), cdiis, switch_to_diis)
+    #acceleration = ediis, cediis 
+
+    algorithm = ScfPipeline(
+        Roothaan(),
+        (acceleration, enable_cdiis),
+        damping,
+        ConvergenceCheck(; max_error_norm = 10e-10)
+    )
+
+    #acceleration = ediis, cediis 
+    #
+    #ScfAlgorithm(
+    #    UpdateCoefficients(),
+    #    UpdateFock(),
+    #    (acceleration, should_apply_accerator),
+    #    damping,
+    #    ConvergenceCheck(is_converged)
+    #)
 
     loglevel = Dict{Symbol, Set}(:stdout => Set([:info, :debug, :warn]))
     solver = initialize(algorithm, problem, guess_density; :loglevel => loglevel)

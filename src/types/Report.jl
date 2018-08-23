@@ -28,6 +28,7 @@ mutable struct SubReport
     algorithm::Union{Missing, Algorithm}
     problem::ScfProblem
     state::Union{Missing, ScfIterState}
+    convergence::Union{Missing, ScfConvergence}
     messages::Vector{ReportMessage}
     source::Union{Nothing, SubReport}
     loglevel::LogLevel

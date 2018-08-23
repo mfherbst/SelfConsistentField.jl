@@ -25,7 +25,7 @@ end
 function iterate(ediis::EDIIS, subreport::SubReport)
     rp = new_subreport(subreport)
     rp.state = compute_next_iterate(ediis, rp.source.state)
-    return rp
+    return ediis, rp
 end
 
 """
