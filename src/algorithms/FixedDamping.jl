@@ -19,7 +19,8 @@ end
 function iterate(fd::FixedDamping, subreport::SubReport)
     rp = new_subreport(subreport)
     rp.state = compute_next_iterate(fd, rp.source.state)
-    return rp
+    log!(rp, "inside FixedDamping", :debug)
+    return fd, rp
 end
 
 function compute_next_iterate(acc::FixedDamping, iterate::ScfIterState)

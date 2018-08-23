@@ -18,5 +18,10 @@ function iterate(ca::Barrier, subreport::SubReport)
             log!(subreport, "Switching to algorithm", typeof(ca.algorithm2), :info, :changealgorithm)
         end
     end
-    ca.changed ? iterate(ca.algorithm2, subreport) : iterate(ca.algorithm1, subreport)
+    if !ca.changed
+        ca.algorithm1, rp = iterate(ca.algorithm1, subreport)
+    else
+        ca.algorithm2, rp = iterate(ca.algorithm2, subreport)
+    end
+    return ca, rp
 end

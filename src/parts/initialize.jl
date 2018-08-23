@@ -16,13 +16,13 @@ function initialize(algorithm::Algorithm, problem::ScfProblem, guess_density::Ab
     pre_initstate = FockIterState(fock, error_pulay, energies, nothing, nothing, guess_density)
 
     # Run initial algorithm configuration
-    pre_logger("initializing " * String(repr("text/plain", typeof(algorithm))), :debug, :subalginit)
+    pre_logger("initializing ", typeof(algorithm), :debug, :subalginit)
     initstate = initialize_if_neccessary(algorithm, problem, pre_initstate, params)
 
     # Construct report and add already existing log messages.
     pre_logger("setting up initial report", :debug,)
     report = Report(problem, initstate, missing, algorithm, Vector{SubReport}(), loglevel)
-    subreport = SubReport(Initializer(), problem, initstate, logmessages, nothing, loglevel, report)
+    subreport = SubReport(Initializer(), problem, initstate, missing, logmessages, nothing, loglevel, report)
     push!(report.history, subreport)
 
     # log a fancy header

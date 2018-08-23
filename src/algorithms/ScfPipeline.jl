@@ -23,14 +23,18 @@ function iterate(scfpipeline::ScfPipeline, subreport::SubReport)
     # Copy the subreport for the new iteration
     subsubreport = subreport
     for algorithm in scfpipeline.algorithms
-        subsubreport = iterate(algorithm, subsubreport)
+        log!(subsubreport, "Applying Algorithm ", typeof(algorithm), :debug)
+        res = iterate(algorithm, subsubreport)
 
         # if the iteration is not done, reset done variable
-        if subsubreport != nothing
+        if res != nothing
             done = false
+            _, subsubreport = res
             push!(scfpipeline.reports, subsubreport)
+        else
+            return nothing
         end
     end
 
-    (scfpipeline, subsubreport)
+    scfpipeline, subsubreport
 end
