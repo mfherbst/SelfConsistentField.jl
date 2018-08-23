@@ -32,7 +32,7 @@ function Base.iterate(report::Report, lastsubreport::SubReport)
     
     # If the underlying algorithm is done, we are done :-)
     if iterresult == nothing
-        log!(report.history[end], "Algorithm is done", :debug)
+        log!(report.history[end], "Algorithm is done", :info)
         return nothing
     end
 
