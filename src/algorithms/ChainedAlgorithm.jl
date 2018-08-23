@@ -7,9 +7,9 @@ mutable struct ChainedAlgorithm <: Algorithm
     end
 end
 
-function initialize(ca::ChainedAlgorithm, problem::ScfProblem, state::ScfIterState, softdefaults::Defaults)
+function initialize(ca::ChainedAlgorithm, problem::ScfProblem, state::ScfIterState, params::Parameters)
     for algorithm in ca.algorithms
-        state = initialize_if_neccessary(algorithm, problem, state, softdefaults)
+        state = initialize_if_neccessary(algorithm, problem, state, params)
     end
     return state
 end

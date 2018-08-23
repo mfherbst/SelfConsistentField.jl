@@ -1,12 +1,7 @@
 struct Initializer <: Algorithm end
 
-function apply_hard_defaults(algorithm::Algorithm, defaults::Dict{Symbol, Any}, pre_logger::Function)
-    pre_logger("TODO: apply_hard_defaults need to be implemented!!!", :warn)
-end
-
 function initialize(algorithm::Algorithm, problem::ScfProblem, guess_density::AbstractArray;
-                    softdefaults::Defaults = Defaults(),
-                    harddefaults::Defaults = Defaults(),
+                    params::Parameters = Parameters(),
                     loglevel::LogLevel)
 
     # As long as we do not have a complete report yet we cannot log messages easily
@@ -22,11 +17,7 @@ function initialize(algorithm::Algorithm, problem::ScfProblem, guess_density::Ab
 
     # Run initial algorithm configuration
     pre_logger("initializing " * String(repr("text/plain", typeof(algorithm))), :debug, :subalginit)
-    initstate = initialize_if_neccessary(algorithm, problem, pre_initstate, softdefaults)
-
-    # Hard defaults override the values produced by automatic algorithm
-    # configuration
-    apply_hard_defaults(algorithm, harddefaults, pre_logger)
+    initstate = initialize_if_neccessary(algorithm, problem, pre_initstate, params)
 
     # Construct report and add already existing log messages.
     pre_logger("setting up initial report", :debug,)
