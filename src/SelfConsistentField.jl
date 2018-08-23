@@ -10,7 +10,7 @@ using Printf
 export ScfProblem, TwoElectronBuilder, JKBuilderFromTensor
 
 # Algorithms
-export ChainedAlgorithm, ConditionalExec, StopCondition, Barrier, Roothaan, cDIIS, EDIIS, FixedDamping, initialize
+export ScfPipeline, ConditionalExec, StopCondition, Barrier, Roothaan, cDIIS, EDIIS, FixedDamping, initialize
 
 # Functions
 export run_scf, compute_nuclear_repulsion, assemble_hf_problem
@@ -45,7 +45,7 @@ include("algorithms/Roothaan.jl")
 include("algorithms/FixedDamping.jl")
 include("algorithms/cDIIS.jl")
 include("algorithms/EDIIS.jl")
-include("algorithms/ChainedAlgorithm.jl")
+include("algorithms/ScfPipeline.jl")
 include("algorithms/ConditionalExec.jl")
 include("algorithms/StopCondition.jl")
 include("algorithms/Barrier.jl")

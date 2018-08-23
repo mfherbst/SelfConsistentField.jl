@@ -2,7 +2,7 @@
 Base.iterate(::T) where {T <: Algorithm} = throw("You need to initialize the algorithm first")
 
 function (new_algorithm_type::Type{T})(old_algorithm::Algorithm, options...) where {T<:Algorithm}
-    ChainedAlgorithm(old_algorithm, new_algorithm_type(options...))
+    ScfPipeline(old_algorithm, new_algorithm_type(options...))
 end
 
 function iterate(::Algorithm, ::SubReport)
