@@ -9,8 +9,8 @@ function iterate(::Algorithm, ::SubReport)
     error("Please overload the function iterate")
 end
 
-function initialize_if_neccessary(alg::Algorithm, problem::ScfProblem, state::ScfIterState, softdefaults::Defaults)
-    applicable(initialize, alg, problem, state, softdefaults) ? initialize(alg, problem, state, softdefaults) : state
+function initialize_if_neccessary(alg::Algorithm, problem::ScfProblem, state::ScfIterState, params::Parameters)
+    applicable(initialize, alg, problem, state, params) ? initialize(alg, problem, state, params) : state
 end
 
 # Iteration functions for algorithms

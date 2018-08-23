@@ -6,9 +6,9 @@ mutable struct ChangeAlgorithm <: Algorithm
     ChangeAlgorithm(alg1::Algorithm, alg2::Algorithm, condition::Function) = new(alg1, alg2, condition, false)
 end
 
-function initialize(ca::ChangeAlgorithm, problem::ScfProblem, state::ScfIterState, softdefaults::Defaults)
-    initialize_if_neccessary(ca.algorithm1, problem, state, softdefaults)
-    initialize_if_neccessary(ca.algorithm2, problem, state, softdefaults)
+function initialize(ca::ChangeAlgorithm, problem::ScfProblem, state::ScfIterState, params::Parameters)
+    initialize_if_neccessary(ca.algorithm1, problem, state, params)
+    initialize_if_neccessary(ca.algorithm2, problem, state, params)
 end
 
 function iterate(ca::ChangeAlgorithm, subreport::SubReport)

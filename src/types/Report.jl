@@ -1,7 +1,7 @@
 abstract type Algorithm end
 
 const LogLevel = Dict{Symbol, Set}
-const Defaults = Dict{Symbol, Any}
+const Parameters = Dict{Symbol, Any}
 
 mutable struct ReportMessage
     msg::String
@@ -34,5 +34,6 @@ mutable struct SubReport
     report::Report # There are cases in which algorithms need information about
                    # past events and the whole Algorithm setup
 end
+# TODO remove reference to report in SubReport
 
 Report(p,s,c,a,h,l) = Report{SubReport}(p,s,c,a,h,l)

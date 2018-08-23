@@ -18,12 +18,12 @@ mutable struct cDIIS <: Algorithm
     end
 end
 
-function initialize(cdiis::cDIIS, problem::ScfProblem, iterstate::ScfIterState, defaults::Defaults)
+function initialize(cdiis::cDIIS, problem::ScfProblem, iterstate::ScfIterState, params::Parameters)
     # TODO needs to become a separate function using reflection
-    cdiis.n_diis_size = ismissing(cdiis.n_diis_size) & haskey(defaults,:n_diis_size) ? defaults[:n_diis_size] : 5
-    cdiis.sync_spins = ismissing(cdiis.sync_spins) & haskey(defaults,:sync_spins) ? defaults[:sync_spins] : true
-    cdiis.conditioning_threshold = ismissing(cdiis.conditioning_threshold) & haskey(defaults,:conditioning_threshold) ? defaults[:conditioning_threshold] : 1e-14
-    cdiis.coefficient_threshold = ismissing(cdiis.coefficient_threshold) & haskey(defaults,:coefficient_threshold) ? defaults[:coefficient_threshold] : 10e-6
+    cdiis.n_diis_size = ismissing(cdiis.n_diis_size) & haskey(params,:n_diis_size) ? params[:n_diis_size] : 5
+    cdiis.sync_spins = ismissing(cdiis.sync_spins) & haskey(params,:sync_spins) ? params[:sync_spins] : true
+    cdiis.conditioning_threshold = ismissing(cdiis.conditioning_threshold) & haskey(params,:conditioning_threshold) ? params[:conditioning_threshold] : 1e-14
+    cdiis.coefficient_threshold = ismissing(cdiis.coefficient_threshold) & haskey(params,:coefficient_threshold) ? params[:coefficient_threshold] : 10e-6
 
     stateα = DiisState(cdiis.n_diis_size)
     cdiis.state = spincount(get_iterate_matrix(iterstate)) == 2 ? (stateα, DiisState(cdiis.n_diis_size)) : (stateα, stateα)
