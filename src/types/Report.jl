@@ -6,10 +6,8 @@ const Defaults = Dict{Symbol, Any}
 mutable struct ReportMessage
     msg::String
     data::Any
-    location::Symbol
 end
-ReportMessage(msg::String, data::Any) = ReportMessage(msg, data, :memory)
-ReportMessage(msg::String) = ReportMessage(msg, nothing, :memory)
+ReportMessage(msg::String) = ReportMessage(msg, nothing)
 
 # There is a recursive dependency between a Report and Subreport. We break this
 # dependency by creating a constructor that automatically sets T as SubReport
