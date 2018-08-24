@@ -124,44 +124,21 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     end
 
     #ecdiis = FallbackMechanism(EDIIS(), cDIIS(); n_fallback_iterations = 5, fallback_predicate = nrtuff)
-    #accelerators = SwitchAlgorithm(EDIIS(), ecdiis, rp -> rp.convergence.error_norm < 10e-2)
-    #algorithm = ChainedAlgorithm(Roothaan(), accelerators)
-    function converged(rp::SelfConsistentField.SubReport)
-        convergence = rp.report.convergence
-        !ismissing(convergence) ? convergence.error_norm < 10e-12 : false
-    end
-
-    function switch_to_diis(rp::SelfConsistentField.SubReport)
-        convergence = rp.report.convergence
-        !ismissing(convergence) ? convergence.error_norm < 10e-2 : false
-    end
-
-    function enable_damping(rp::SelfConsistentField.SubReport)
-        convergence = rp.report.convergence
-        !ismissing(convergence) ? convergence.error_norm > 10e-1 : true
-    end
-
-    function enable_cdiis(rp::SelfConsistentField.SubReport)
-        convergence = rp.report.convergence
-        !ismissing(convergence) ? convergence.error_norm > 10e-8 : true
-    end
-
-    #algorithm = ConditionalExec(ChainedAlgorithm(Roothaan(), ChangeAlgorithm(EDIIS(), cDIIS(), switch_to_diis)), !converged)
-    #cdiis = ConditionalExec(cDIIS(), enable_cdiis)
-    #diis = Barrier(EDIIS(), cdiis, switch_to_diis)
-    #damping = ConditionalExec(FixedDamping(), enable_damping)
-    #algorithm = ScfPipeline(Roothaan(), diis, damping)
-    #algorithm = 
-   
-    damping = FixedDamping(), enable_damping
-    cdiis = cDIIS(), enable_cdiis
-    acceleration = Barrier(EDIIS(), cdiis, switch_to_diis)
-    #acceleration = ediis, cediis 
 
     algorithm = ScfPipeline(
         Roothaan(),
-        (acceleration, enable_cdiis),
-        damping,
+        (
+         Barrier(
+                 EDIIS(),
+                 (cDIIS(), before_errnorm(10e-5)),
+                 after_errnorm(10e-2)
+                ),
+         before_errnorm(10e-7)
+        ),
+        (
+         FixedDamping(),
+         between_errnorm(10e-2, 10e-7)
+        ),
         ConvergenceCheck(; max_error_norm = 10e-10)
     )
 
@@ -175,7 +152,7 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     #    ConvergenceCheck(is_converged)
     #)
 
-    loglevel = Dict{Symbol, Set}(:stdout => Set([:info, :debug, :warn]))
+    loglevel = Dict{Symbol, Set}(:stdout => Set([:info, :warn]))
     solver = initialize(algorithm, problem, guess_density; :loglevel => loglevel)
     for rp in solver
     end

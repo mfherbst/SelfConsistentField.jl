@@ -15,6 +15,7 @@ export ScfPipeline, ConditionalExec, ConvergenceCheck, Barrier, Roothaan, cDIIS,
 # Functions
 export run_scf, compute_nuclear_repulsion, assemble_hf_problem
 export compute_pulay_error, is_closed_shell
+export after_errnorm, before_errnorm, between_errnorm
 
 # Utilities, which help in setting up an SCF problem or storing
 # the result
