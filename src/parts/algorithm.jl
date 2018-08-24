@@ -71,3 +71,18 @@ function Base.iterate(report::Report, lastsubreport::SubReport)
     return (report, subreport)
 end
 
+function Base.convert(::Type{T}, rp::Report) where {T <: AbstractDict}
+    Dict(
+         "n_iter"=>length(rp.history) - 1,
+         "n_applies"=>NaN,
+         "problem"=>rp.problem,
+         "orben"=>rp.state.orben,
+         "orbcoeff"=>rp.state.orbcoeff,
+         "density"=>compute_density(rp.problem,rp.state.orbcoeff),
+         "converged"=> rp.convergence.is_converged,
+         "fock"=>rp.state.fock,
+         "energies"=>rp.state.energies,
+         "error_norm"=>rp.convergence.error_norm,
+         "energy_change"=>rp.convergence.energy_change
+    )
+end

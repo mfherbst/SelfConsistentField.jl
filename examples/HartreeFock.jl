@@ -155,18 +155,19 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     loglevel = Dict{Symbol, Set}(:stdout => Set([:info, :warn]))
     solver = initialize(algorithm, problem, guess_density; :loglevel => loglevel)
     collect(solver)
+    res = convert(Dict, solver)
 
     #res = run_scf(problem, guess_density; params...)
 
-    #if ! res["converged"]
-    #    error("SCF failed to converge")
-    #end
-    #compute_termwise_hf_energies!(res, problem)
+    if ! res["converged"]
+        error("SCF failed to converge")
+    end
+    compute_termwise_hf_energies!(res, problem)
 
-    #print_results(problem, res)
-    #if ofile != nothing
-    #    dump_molsturm_hdf5(integrals, res, ofile)
-    #end
+    print_results(problem, res)
+    if ofile != nothing
+        dump_molsturm_hdf5(integrals, res, ofile)
+    end
 end
 
 function main()
