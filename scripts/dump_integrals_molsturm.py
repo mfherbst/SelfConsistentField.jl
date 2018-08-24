@@ -44,6 +44,7 @@ def dump_integrals_gaussian(atoms, coords, electrons,
         g_discr.create_dataset("basis_set_name",
                                dtype=h5py.special_dtype(vlen=str),
                                data=basis_set_name)
+        g_discr.create_dataset("has_real_harmonics", data=1, dtype=np.uint8)
 
 
 def dump_integrals_sturmian(atoms, coords, electrons,
@@ -75,6 +76,8 @@ def dump_integrals_sturmian(atoms, coords, electrons,
         g_discr.create_dataset("n_max", data=n_max)
         g_discr.create_dataset("l_max", data=l_max)
         g_discr.create_dataset("m_max", data=m_max)
+        g_discr.create_dataset("has_real_harmonics",
+                               data=basis.has_real_harmonics, dtype=np.uint8)
 
 
 def main():

@@ -48,6 +48,7 @@ def dump_integrals_gaussian(atoms, coords, electrons,
         g_discr.create_dataset("basis_set_name",
                                dtype=h5py.special_dtype(vlen=str),
                                data=basis_set_name)
+        g_discr.create_dataset("has_real_harmonics", data=1, dtype=np.uint8)
 
 
 def main():
