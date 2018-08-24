@@ -45,6 +45,8 @@ function between_errnorm(start::Number, stop::Number)
     end
 end
 
+Base.IteratorSize(::Report) = Base.SizeUnknown()
+
 # Iteration functions for algorithms
 Base.iterate(report::Report) = (report, report.history[end])
 function Base.iterate(report::Report, lastsubreport::SubReport)
