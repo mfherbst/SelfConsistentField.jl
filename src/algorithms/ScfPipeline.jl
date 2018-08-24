@@ -1,9 +1,8 @@
 mutable struct ScfPipeline <: Algorithm
     algorithms::Vector{Algorithm}
     reports::Vector{SubReport}
-    done::Bool
     function ScfPipeline(algorithms::Algorithm...)
-        new(collect(algorithms), Vector{SubReport}(), false)
+        new(collect(algorithms), Vector{SubReport}())
     end
 end
 
@@ -15,10 +14,9 @@ function initialize(sp::ScfPipeline, problem::ScfProblem, state::ScfIterState, p
 end
 
 function iterate(scfpipeline::ScfPipeline, subreport::SubReport)
-    scfpipeline.done && return nothing
-
-    # track if all algorithms are done
-    done = true
+    if !ismissing(subreport.convergence)
+        subreport.convergence.is_converged && return nothing
+    end
 
     # Copy the subreport for the new iteration
     subsubreport = subreport
@@ -28,9 +26,13 @@ function iterate(scfpipeline::ScfPipeline, subreport::SubReport)
 
         # if the iteration is not done, reset done variable
         if res != nothing
-            done = false
             _, subsubreport = res
             push!(scfpipeline.reports, subsubreport)
+
+            if !ismissing(subreport.convergence) ? subreport.convergence.is_converged : false
+                log!(subsubreport, "Convergence reached", :debug)
+                break
+            end
         else
             return nothing
         end
