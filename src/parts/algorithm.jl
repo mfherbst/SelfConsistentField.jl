@@ -10,7 +10,9 @@ function (new_algorithm_type::Type{T})(args...) where {T<:Algorithm}
                         ConditionalExec(args[i][1], args[i][2]) :
                         args[i]
 
-    new_algorithm_type(ntuple(conv_to_alg, length(args))...)
+    newargs = ntuple(conv_to_alg, length(args))
+    args == newargs && throw(MethodError(new_algorithm_type, args))
+    new_algorithm_type(newargs...)
 end
 
 #function (new_algorithm_type::Type{T})(old_algorithm::Algorithm, options...) where {T<:Algorithm}
@@ -23,6 +25,24 @@ end
 
 function initialize_if_neccessary(alg::Algorithm, problem::ScfProblem, state::ScfIterState, params::Parameters)
     applicable(initialize, alg, problem, state, params) ? initialize(alg, problem, state, params) : state
+end
+
+function before_errnorm(threshold::Number)
+    function enable_when(rp::SubReport)
+        !ismissing(rp.convergence) ? rp.convergence.error_norm > threshold : true
+    end
+end
+
+function after_errnorm(threshold::Number)
+    function enable_when(rp::SubReport)
+        !ismissing(rp.convergence) ? rp.convergence.error_norm < threshold : false
+    end
+end
+
+function between_errnorm(start::Number, stop::Number)
+    function enable_when(rp::SubReport)
+        !ismissing(rp.convergence) ? start > rp.convergence.error_norm > stop : false
+    end
 end
 
 # Iteration functions for algorithms
