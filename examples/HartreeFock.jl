@@ -154,8 +154,7 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
 
     loglevel = Dict{Symbol, Set}(:stdout => Set([:info, :warn]))
     solver = initialize(algorithm, problem, guess_density; :loglevel => loglevel)
-    for rp in solver
-    end
+    collect(solver)
 
     #res = run_scf(problem, guess_density; params...)
 
