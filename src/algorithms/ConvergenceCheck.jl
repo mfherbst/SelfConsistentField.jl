@@ -33,10 +33,5 @@ function iterate(cc::ConvergenceCheck, subreport::SubReport)
 
     # Store new iterstate for next iteration
     cc.olditerstate = rp.state
-
-    if !ismissing(rp.convergence) ? rp.convergence.is_converged : false
-        subreport.convergence = rp.convergence
-        return nothing
-    end
     return cc, rp
 end
