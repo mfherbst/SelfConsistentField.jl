@@ -20,7 +20,7 @@ function compute_next_iterate(acc::Union{cDIIS,EDIIS}, iterstate::ScfIterState)
     # merged matrix. This also means we need to remove the same number of
     # matrices from both histrories.
     if acc.sync_spins & (spincount(iterate) == 2)
-        A = merge_matrices(acc, matrix(1), matrix(2))
+        A = merge_diis_matrices_spin_blocks(acc, matrix(1), matrix(2))
         c, matrixpurgecount = coefficients(A)
         map(σ -> compute(c, σ), spinloop(iterate))
         map(σ -> purge_from_state(acc, acc.state[σ], matrixpurgecount), spinloop(iterate))

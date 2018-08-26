@@ -123,6 +123,6 @@ end
     When synchronizing spins the resulting DIIS matrices have to be added
     together but the constraint must be kept as is.
 """
-function merge_matrices(::EDIIS, B1::AbstractArray, B2::AbstractArray)
+function merge_diis_matrices_spin_blocks(::EDIIS, B1::AbstractArray, B2::AbstractArray)
     B1 + B2
 end
