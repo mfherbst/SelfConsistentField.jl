@@ -3,6 +3,7 @@ module SelfConsistentField
 using LinearAlgebra
 using TensorOperations
 using DataStructures
+using Optim
 
 # Types
 export ScfProblem, TwoElectronBuilder, JKBuilderFromTensor
@@ -19,6 +20,7 @@ export break_spin_symmetry
 include("types/ScfIterState.jl")
 include("types/ScfProblem.jl")
 include("types/Accelerator.jl")
+include("types/DiisState.jl")
 
 include("parts/compute_density.jl")
 include("parts/compute_orbitals.jl")
@@ -32,11 +34,14 @@ include("algorithms/JKBuilderFromTensor.jl")
 include("algorithms/Roothaan.jl")
 include("algorithms/FixedDamping.jl")
 include("algorithms/cDIIS.jl")
+include("algorithms/EDIIS.jl")
 
 include("util/guess.jl")
 include("util/dump_molsturm_hdf5.jl")
 include("util/load_integral_hdf5.jl")
 include("util/break_spin_symmetry.jl")
+
+include("parts/diis.jl")
 
 include("run_scf.jl")
 

@@ -2,10 +2,10 @@ using Printf
 
 # TODO Find a way to get the print statements out
 function run_scf(problem::ScfProblem, guess_density::AbstractArray;
-                 max_iter=100, damping_max_error_norm=0.25,
+                 max_iter=100, ediis_max_error_norm=0.1,
                  kwargs...)
     # Setup accelerators and SCF-global objects
-    damping = FixedDamping(problem; kwargs...)
+    damping = EDIIS(problem; kwargs...)
     scfconv = nothing
     switched_to_diis = false
 
@@ -14,7 +14,7 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
 
     # Build initial iterate
     fock, error_pulay, energies = compute_fock_matrix(problem, guess_density; kwargs...)
-    iterate = FockIterState(fock, error_pulay, energies, nothing, nothing)
+    iterate = FockIterState(fock, error_pulay, energies, nothing, nothing, guess_density)
 
     @printf("%5s %14s %14s %14s %15s %12s\n",
             "iter", "e1e", "e2e", "etot", "scf_error", "n_applies")
@@ -39,8 +39,8 @@ function run_scf(problem::ScfProblem, guess_density::AbstractArray;
         # If converged end iteration
         if scfconv.is_converged break end
 
-        if scfconv.error_norm < 0.25 && !switched_to_diis
-            println("**** Switching on DIIS ****")
+        if scfconv.error_norm < ediis_max_error_norm && !switched_to_diis
+            println("**** Switching algorithms EDIIS -> cDIIS ****")
             damping = cDIIS(problem; kwargs...)
             switched_to_diis = true
         end
