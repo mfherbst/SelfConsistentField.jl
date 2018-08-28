@@ -27,8 +27,10 @@ function push_iterate!(algorithm::Algorithm, state::DiisState, iterate::Abstract
     pushfirst!(state.iterate,  iterate)
 
     # Push difference to previous iterate if no error given
-    pushfirst!(state.error,
-               error != nothing ? error : iterate - state.iterate[1])
+    if needs_error(algorithm)
+        pushfirst!(state.error,
+                   error == nothing ? iterate - state.iterate[1] : error)
+    end
     needs_density(algorithm) ? pushfirst!(state.density, density) : 0
     energies != nothing ? pushfirst!(state.energies, energies) : 0
 end
