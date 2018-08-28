@@ -26,7 +26,6 @@ include("types/ScfIterState.jl")
 include("types/ScfProblem.jl")
 include("types/ScfConvergence.jl")
 include("types/Report.jl")
-include("types/Accelerator.jl")
 include("types/DiisState.jl")
 
 include("parts/compute_density.jl")
