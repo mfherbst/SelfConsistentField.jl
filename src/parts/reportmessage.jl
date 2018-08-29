@@ -31,7 +31,6 @@ end
 # returns a logging function with a fake subreport which supports everything
 # the logging function needs.
 function logger(logmessages::Vector{ReportMessage}, loglevel::Dict{Symbol, Set})
-    #fakesubreport = SubReport(Initializer(), ScfProblem(), missing, false, logmessages, nothing, Report(problem, FockIterState([], [], Dict{String, Float64}(), nothing, nothing, nothing), [], [[]], loglevel))
     # TODOneeds to be implemented somehow
     (args...) -> println(args)
 end

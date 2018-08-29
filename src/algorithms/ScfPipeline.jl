@@ -1,6 +1,6 @@
 mutable struct ScfPipeline <: Algorithm
     algorithms::Vector{Algorithm}
-    reports::Vector{SubReport}
+    subreports::Vector{SubReport}
     function ScfPipeline(algorithms::Algorithm...)
         new(collect(algorithms), Vector{SubReport}())
     end
@@ -27,7 +27,7 @@ function iterate(scfpipeline::ScfPipeline, subreport::SubReport)
         # if the iteration is not done, reset done variable
         if res != nothing
             _, subsubreport = res
-            push!(scfpipeline.reports, subsubreport)
+            push!(scfpipeline.subreports, subsubreport)
 
             if !ismissing(subreport.convergence) ? subreport.convergence.is_converged : false
                 log!(subsubreport, "Convergence reached", :debug)
