@@ -37,17 +37,19 @@ end
 
 """
     Removes 'count' Items from DiisState.
-    Warning: Assumes you have already pushed a new iterate to the state.
+    Warning: Assumes all buffers are of the same length.
 """
 function purge_from_state(algorithm::Algorithm, state::DiisState, count::Int)
     if count == 0
         return
     end
-    for i in 1:count + 1
+    @assert length(state.iterate) == length(state.iterationstate)
+    for i in 1:count
         pop!(state.iterate)
         pop!(state.iterationstate)
-        needs_error(algorithm) & (state.error != nothing) ? pop!(state.error) : 0
-        needs_density(algorithm) & (state.density != nothing) ? pop!(state.density) : 0
+        needs_error(algorithm) && pop!(state.error)
+        needs_density(algorithm) && pop!(state.density)
+        pop!(state.energies)
     end
 end
 

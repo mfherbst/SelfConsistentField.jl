@@ -5,4 +5,7 @@ end
 using Test
 using SelfConsistentField
 
-include("functionality_hartee_fock.jl")
+@testset "SelfConsistentField" begin
+    #include("functionality_hartee_fock.jl")
+    include("types.jl")
+end
