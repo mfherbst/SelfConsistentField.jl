@@ -10,7 +10,9 @@ using Printf
 export ScfProblem, TwoElectronBuilder, JKBuilderFromTensor
 
 # Algorithms
-export ScfPipeline, ConditionalExec, ConvergenceCheck, Barrier, Roothaan, cDIIS, EDIIS, FixedDamping, initialize
+export ScfPipeline, ConditionalExec, ConvergenceCheck,
+       Barrier, ComputeOrbitals, ComputeDensity, ComputeFock,
+       cDIIS, EDIIS, FixedDamping, initialize
 
 # Functions
 export compute_nuclear_repulsion, assemble_hf_problem
@@ -28,10 +30,7 @@ include("types/ScfConvergence.jl")
 include("types/Report.jl")
 include("types/DiisState.jl")
 
-include("parts/compute_density.jl")
-include("parts/compute_orbitals.jl")
 include("parts/compute_pulay_error.jl")
-include("parts/compute_fock_matrix.jl")
 include("parts/check_convergence.jl")
 include("parts/assemble_hf_problem.jl")
 include("parts/misc.jl")
@@ -41,8 +40,10 @@ include("parts/initialize.jl")
 include("parts/new_subreport.jl")
 include("parts/compute_error_norm.jl")
 
+include("algorithms/ComputeDensity.jl")
+include("algorithms/ComputeOrbitals.jl")
+include("algorithms/ComputeFock.jl")
 include("algorithms/JKBuilderFromTensor.jl")
-include("algorithms/Roothaan.jl")
 include("algorithms/FixedDamping.jl")
 include("algorithms/cDIIS.jl")
 include("algorithms/EDIIS.jl")

@@ -1,3 +1,14 @@
+struct ComputeFock <: Algorithm end
+
+function iterate(compfock::ComputeFock, rp::SubReport)
+    newrp = new_subreport(rp)
+
+    fock, error_pulay, energies = compute_fock_matrix(rp.problem, rp.state.density)
+
+    newrp.state = FockIterState(fock, error_pulay, energies, rp.state.orbcoeff, rp.state.orben, rp.state.density)
+    return compfock, newrp
+end
+
 """
 Build Fock matrix or Kohn-Sham matrix along with the associated energies
 and errors for the density passed as second argument.
