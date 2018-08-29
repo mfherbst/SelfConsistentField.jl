@@ -24,13 +24,13 @@ function compute_next_iterate(acc::Union{cDIIS,EDIIS}, iterstate::ScfIterState)
         A = merge_diis_matrices_spin_blocks(acc, matrix(1), matrix(2))
         c, matrixpurgecount = coefficients(A)
         map(σ -> compute(c, σ), spinloop(iterate))
-        map(σ -> purge_from_state(acc, acc.state[σ], matrixpurgecount), spinloop(iterate))
+        map(σ -> purge_from_state(acc, acc.state[σ], matrixpurgecount + 1), spinloop(iterate)) # +1, since we have already pushed a new matrix!
     else
         # If we are calculating the spins separately, each spin has its own coefficients.
         for σ in spinloop(iterate)
             c, matrixpurgecount = coefficients(matrix(σ))
             compute(c, σ)
-            purge_from_state(acc, acc.state[σ], matrixpurgecount)
+            purge_from_state(acc, acc.state[σ], matrixpurgecount + 1) # +1, since we have already pushed a new matrix!
         end
     end
     return update_iterate_matrix(iterstate, new_iterate)

@@ -13,7 +13,7 @@ export ScfProblem, TwoElectronBuilder, JKBuilderFromTensor
 export ScfPipeline, ConditionalExec, ConvergenceCheck, Barrier, Roothaan, cDIIS, EDIIS, FixedDamping, initialize
 
 # Functions
-export run_scf, compute_nuclear_repulsion, assemble_hf_problem
+export compute_nuclear_repulsion, assemble_hf_problem
 export compute_pulay_error, is_closed_shell
 export after_errnorm, before_errnorm, between_errnorm
 
@@ -57,7 +57,5 @@ include("util/load_integral_hdf5.jl")
 include("util/break_spin_symmetry.jl")
 
 include("parts/diis.jl")
-
-include("run_scf.jl")
 
 end # module
