@@ -1,5 +1,12 @@
 struct Initializer <: Algorithm end
 
+function build_initial_state(problem::ScfProblem, guess_density::AbstractArray, pre_logger::Function)
+    # Build initial iteration state
+    pre_logger("Building initial ScfIterState", :debug, :subalginit)
+    fock, error_pulay, energies = compute_fock_matrix(problem, guess_density)
+    FockIterState(fock, error_pulay, energies, nothing, nothing, guess_density)
+end
+
 function initialize(algorithm::Algorithm, problem::ScfProblem, guess_density::AbstractArray;
                     params::Parameters = Parameters(),
                     loglevel::LogLevel)
@@ -10,12 +17,8 @@ function initialize(algorithm::Algorithm, problem::ScfProblem, guess_density::Ab
     pre_logger = logger(logmessages, loglevel)
     pre_logger("Starting Initialization", :info)
     
-    # Build initial iteration state
-    pre_logger("Building initial iterate", :debug, :subalginit)
-    fock, error_pulay, energies = compute_fock_matrix(problem, guess_density)
-    pre_initstate = FockIterState(fock, error_pulay, energies, nothing, nothing, guess_density)
-
     # Run initial algorithm configuration
+    pre_initstate = build_initial_state(problem, guess_density, pre_logger)
     pre_logger("initializing ", typeof(algorithm), :debug, :subalginit)
     initstate = initialize_if_neccessary(algorithm, problem, pre_initstate, params)
 
