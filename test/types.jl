@@ -1,7 +1,7 @@
 using SelfConsistentField: FockIterState, DiisState,
           ScfIterState, get_iterate_matrix, update_iterate_matrix,
           LogLevel, Parameters, ReportMessage, push_iterate!,
-          Algorithm, purge_from_state
+          Algorithm, purge_from_state, ScfConvergence
 
 @testset "FockIterState structure" begin
     state = FockIterState([1,2,3], [4,5,6], Dict("a" => 3.0, "b" => 4.0), [7, 8, 9], [10, 11, 12], [13, 14, 15])
@@ -111,4 +111,11 @@ struct TestAlgorithm <: Algorithm end
         need_density = false
         run_pushiterate_tests()
     end
+end
+
+@testset "ScfConvergence structure" begin
+    conv = ScfConvergence(3.0, Dict("total" => 4.4, "e1" => 5.7), false)
+    @test conv.error_norm == 3.0
+    @test conv.energy_change == Dict("total" => 4.4, "e1" => 5.7)
+    @test conv.is_converged == false
 end
