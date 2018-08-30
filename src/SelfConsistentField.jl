@@ -12,7 +12,7 @@ export ScfProblem, TwoElectronBuilder, JKBuilderFromTensor
 # Algorithms
 export ScfPipeline, ConditionalExec, ConvergenceCheck,
        Barrier, ComputeOrbitals, ComputeDensity, ComputeFock,
-       cDIIS, EDIIS, FixedDamping, initialize
+       cDIIS, EDIIS, FixedDamping, setup
 
 # Functions
 export compute_nuclear_repulsion, assemble_hf_problem
@@ -39,7 +39,7 @@ include("parts/algorithm.jl")
 include("parts/report.jl")
 include("parts/ranged_applications.jl")
 include("parts/reportmessage.jl")
-include("parts/initialize.jl")
+include("parts/setup.jl")
 include("parts/new_subreport.jl")
 include("parts/compute_error_norm.jl")
 

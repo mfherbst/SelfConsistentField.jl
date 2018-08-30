@@ -3,8 +3,9 @@ mutable struct ConditionalExec <: Algorithm
     condition::Function
 end
 
-function initialize(ce::ConditionalExec, problem::ScfProblem, state::ScfIterState, params::Parameters)
-    initialize_if_neccessary(ce.algorithm, problem, state, params)
+function setup(ce::ConditionalExec, problem::ScfProblem, state::ScfIterState, params::Parameters)
+    newalg = setup_if_neccessary(ce.algorithm, problem, state, params)
+    ConditionalExec(newalg, ce.condition)
 end
 
 function iterate(ce::ConditionalExec, subreport::SubReport)

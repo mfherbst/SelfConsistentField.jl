@@ -124,28 +124,29 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     end
 
     #ecdiis = FallbackMechanism(EDIIS(), cDIIS(); n_fallback_iterations = 5, fallback_predicate = nrtuff)
-    roothan = ScfPipeline(
-                          ComputeOrbitals(),
-                          ComputeDensity(),
-                          ComputeFock()
-                         )
+    #roothan = ScfPipeline(
+    #                      ComputeOrbitals(),
+    #                      ComputeDensity(),
+    #                      ComputeFock()
+    #                     )
 
-    algorithm = ScfPipeline(
-        roothan,
-        (
-         Barrier(
-                 EDIIS(),
-                 (cDIIS(), before_errnorm(10e-5)),
-                 after_errnorm(10e-2)
-                ),
-         before_errnorm(10e-7)
-        ),
-        (
-         FixedDamping(),
-         between_errnorm(10e-2, 10e-7)
-        ),
-        ConvergenceCheck(; max_error_norm = 10e-10)
-    )
+    algorithm = cDIIS()
+    #algorithm = ScfPipeline(
+    #    roothan,
+    #    (
+    #     Barrier(
+    #             EDIIS(),
+    #             (cDIIS(), before_errnorm(10e-5)),
+    #             after_errnorm(10e-2)
+    #            ),
+    #     before_errnorm(10e-7)
+    #    ),
+    #    (
+    #     FixedDamping(),
+    #     between_errnorm(10e-2, 10e-7)
+    #    ),
+    #    ConvergenceCheck(; max_error_norm = 10e-10)
+    #)
 
     #acceleration = ediis, cediis 
     #
@@ -158,7 +159,7 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     #)
 
     loglevel = Dict{Symbol, Set}(:stdout => Set([:info, :warn]))
-    solver = initialize(algorithm, problem, guess_density; :loglevel => loglevel)
+    solver = setup(algorithm, problem, guess_density; :loglevel => loglevel)
     collect(solver)
     res = convert(Dict, solver)
 

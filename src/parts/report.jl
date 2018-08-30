@@ -19,6 +19,7 @@ function Base.iterate(report::Report, lastsubreport::SubReport)
     log!(subreport, @sprintf(" %4d %14.8f %14.8f %14.8f %16.9g %12d", length(report.history) - 1, report.state.energies["1e"], report.state.energies["2e"], report.state.energies["total"], !ismissing(report.convergence) ? report.convergence.error_norm : NaN, NaN), :info)
 
     # update state reference in report
+    report.algorithm = subreport.algorithm
     report.state = subreport.state
     report.convergence = subreport.convergence
     return (report, subreport)

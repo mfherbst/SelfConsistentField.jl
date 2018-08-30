@@ -6,22 +6,23 @@ mutable struct Barrier <: Algorithm
     Barrier(alg1::Algorithm, alg2::Algorithm, condition::Function) = new(alg1, alg2, condition, false)
 end
 
-function initialize(ca::Barrier, problem::ScfProblem, state::ScfIterState, params::Parameters)
-    initialize_if_neccessary(ca.algorithm1, problem, state, params)
-    initialize_if_neccessary(ca.algorithm2, problem, state, params)
+function setup(barrier::Barrier, problem::ScfProblem, state::ScfIterState, params::Parameters)
+    alg1 = setup_if_neccessary(barrier.algorithm1, problem, state, params)
+    alg2 = setup_if_neccessary(barrier.algorithm2, problem, state, params)
+    Barrier(alg1, alg2, barrier.changecondition, barrier.changed)
 end
 
-function iterate(ca::Barrier, subreport::SubReport)
-    if !ca.changed
-        if ca.changecondition(subreport)
-            ca.changed = true
-            log!(subreport, "Switching to algorithm", typeof(ca.algorithm2), :info, :changealgorithm)
+function iterate(barrier::Barrier, subreport::SubReport)
+    if !barrier.changed
+        if barrier.changecondition(subreport)
+            barrier.changed = true
+            log!(subreport, "Switching to algorithm", typeof(barrier.algorithm2), :info, :changealgorithm)
         end
     end
-    if !ca.changed
-        ca.algorithm1, rp = iterate(ca.algorithm1, subreport)
+    if !barrier.changed
+        barrier.algorithm1, rp = iterate(barrier.algorithm1, subreport)
     else
-        ca.algorithm2, rp = iterate(ca.algorithm2, subreport)
+        barrier.algorithm2, rp = iterate(barrier.algorithm2, subreport)
     end
-    return ca, rp
+    return barrier, rp
 end
