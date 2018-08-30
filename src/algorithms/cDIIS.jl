@@ -13,21 +13,23 @@ struct cDIIS <: Algorithm
     history::Tuple{DiisHistory, DiisHistory}
 end
 
-function cDIIS(problem::ScfProblem, history::ScfIterState, rp::InitReport; n_diis_size = 5, sync_spins = true, conditioning_threshold = 1e-14, coefficient_threshold = 10e-6, params...)
-    log!(rp, "setting up cDIIS", :info, :cdiis, :setup)
+function cDIIS(problem::ScfProblem, history::ScfIterState, lg::Logger; n_diis_size = 5, sync_spins = true, conditioning_threshold = 1e-14, coefficient_threshold = 10e-6, params...)
+    log!(lg, "setting up cDIIS", :info, :cdiis, :setup)
     historyα = DiisHistory(n_diis_size)
     history = spincount(get_iterate_matrix(history)) == 2 ? (historyα, DiisHistory(cdiis.n_diis_size)) : (historyα, historyα)
-    log!(rp, "number of historys", length(history), :debug, :cdis, :setup)
+    log!(lg, "number of histories", length(history), :debug, :cdis, :setup)
 
     cDIIS(n_diis_size, sync_spins, conditioning_threshold, coefficient_threshold, history)
 end
 
+function Base.copy(cdiis::cDIIS)
+    cDIIS(cdiis.n_diis_size, cdiis.sync_spins, cdiis.conditioning_threshold, cdiis.coefficient_threshold, copy(history))
+end
+
 function iterate(cdiis::cDIIS, subreport::SubReport)
     rp = new_subreport(subreport)
-    rp.state = compute_next_iterate(cdiis, rp.source.state)
-    rp.algorithm = cdiis
-    println(cdiis.history[1])
-    return cdiis, rp
+    rp.state = compute_next_iterate(rp.algorithm, rp.source.state)
+    return rp.algorithm, rp
 end
 
 function needs_error(::cDIIS)

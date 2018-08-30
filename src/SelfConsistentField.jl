@@ -29,7 +29,7 @@ include("types/ScfProblem.jl")
 include("types/ScfConvergence.jl")
 include("types/ReportMessage.jl")
 include("types/Report.jl")
-include("types/DiisState.jl")
+include("types/DiisHistory.jl")
 
 include("parts/compute_pulay_error.jl")
 include("parts/check_convergence.jl")
