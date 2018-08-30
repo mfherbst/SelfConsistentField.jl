@@ -5,29 +5,28 @@
 """
     cDIIS
 """
-mutable struct cDIIS <: Algorithm
+struct cDIIS <: Algorithm
     n_diis_size::Union{Missing, Int}
     sync_spins::Union{Missing, Bool}
     conditioning_threshold::Union{Missing, Float64}
     coefficient_threshold::Union{Missing, Float64}
-    state::Tuple{DiisState, DiisState}
-    # TODO rename state to history
+    history::Tuple{DiisHistory, DiisHistory}
 end
 
-function cDIIS(problem::ScfProblem, state::ScfIterState, rp::InitReport; n_diis_size = 5, sync_spins = true, conditioning_threshold = 1e-14, coefficient_threshold = 10e-6, params...)
+function cDIIS(problem::ScfProblem, history::ScfIterState, rp::InitReport; n_diis_size = 5, sync_spins = true, conditioning_threshold = 1e-14, coefficient_threshold = 10e-6, params...)
     log!(rp, "setting up cDIIS", :info, :cdiis, :setup)
-    stateα = DiisState(n_diis_size)
-    state = spincount(get_iterate_matrix(state)) == 2 ? (stateα, DiisState(cdiis.n_diis_size)) : (stateα, stateα)
-    log!(rp, "number of states", length(state), :debug, :cdis, :setup)
+    historyα = DiisHistory(n_diis_size)
+    history = spincount(get_iterate_matrix(history)) == 2 ? (historyα, DiisHistory(cdiis.n_diis_size)) : (historyα, historyα)
+    log!(rp, "number of historys", length(history), :debug, :cdis, :setup)
 
-    cDIIS(n_diis_size, sync_spins, conditioning_threshold, coefficient_threshold, state)
+    cDIIS(n_diis_size, sync_spins, conditioning_threshold, coefficient_threshold, history)
 end
 
 function iterate(cdiis::cDIIS, subreport::SubReport)
     rp = new_subreport(subreport)
     rp.state = compute_next_iterate(cdiis, rp.source.state)
     rp.algorithm = cdiis
-    println(cdiis.state[1])
+    println(cdiis.history[1])
     return cdiis, rp
 end
 
@@ -92,18 +91,18 @@ end
     A = B  1
         1† 0
 """
-function diis_build_matrix(::cDIIS, state::DiisState)
-    @assert state.n_diis_size > 0
-    @assert state.iterate.length > 0
+function diis_build_matrix(::cDIIS, history::DiisHistory)
+    @assert history.n_diis_size > 0
+    @assert history.iterate.length > 0
 
     # The Fock Matrix in the next Iteration is a linear combination of
     # previous Fock Matrices.
     #
-    # The linear system has dimension m <= state.n_diis_size, since in the
+    # The linear system has dimension m <= history.n_diis_size, since in the
     # beginning of the iteration we do not have the full number of
     # previous Fock Matrices yet.
 
-    m = min(state.n_diis_size, length(state.iterate))
+    m = min(history.n_diis_size, length(history.iterate))
 
     A = zeros(m +1,m +1)
 
@@ -135,14 +134,14 @@ function diis_build_matrix(::cDIIS, state::DiisState)
 
     # Fill the first row with newly calculated values and cache them
     # in a newly created Circular Buffer
-    newValues = CircularBuffer{Any}(state.n_diis_size)
+    newValues = CircularBuffer{Any}(history.n_diis_size)
     map(j -> push!(newValues,
-                   tr(state.error[1]' * state.error[j])), 1:m)
+                   tr(history.error[1]' * history.error[j])), 1:m)
     fill!(newValues, 0)
 
-    # Push newly calculated row to the row buffer. We use the iterationstate to
+    # Push newly calculated row to the row buffer. We use the iterationhistory to
     # store these.
-    pushfirst!(state.iterationstate, newValues)
+    pushfirst!(history.iterationhistory, newValues)
 
     # The last element of each row of A has to be 1. After calling Symmetric(A)
     # the copy of these 1s in the bottom row of A defines the constraint
@@ -153,14 +152,14 @@ function diis_build_matrix(::cDIIS, state::DiisState)
     # push a '0' on each buffer to prepare it for the next iteration
     # and set the last element of each row to 1.
     for i in 1:m
-        A[i,1:m] = state.iterationstate[i][1:m]
+        A[i,1:m] = history.iterationhistory[i][1:m]
         A[i, m + 1] = 1
 
         # Since we want to use this buffer as the 2nd row of A in the next
         # iteration we need the following layout of the buffer
         #   0 A[1,1] A[1,2] … A[1,m-1]
         # so we need to push a 0 to the beginning
-        pushfirst!(state.iterationstate[i], 0)
+        pushfirst!(history.iterationhistory[i], 0)
     end
 
     return Symmetric(A)
