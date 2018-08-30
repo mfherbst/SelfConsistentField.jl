@@ -6,7 +6,7 @@ function compute_next_iterate(acc::Union{cDIIS,EDIIS}, state::ScfIterState)
     iterate = get_iterate_matrix(state)
 
     # Push iterate and error to history
-    map(σ -> push_iterate!(acc, acc.history[σ], spin(state.fock, σ), spin(state.error_pulay, σ), spin(state.density, σ), state.energies), spinloop(iterate))
+    map(σ -> push_iterate!(acc, acc.history[σ], spin(iterate, σ), spin(state.error_pulay, σ), spin(state.density, σ), state.energies), spinloop(iterate))
 
     # To save memory we store only new_iterate once and pass views of it to the
     # computation routines that write directly into the view.

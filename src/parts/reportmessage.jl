@@ -1,5 +1,5 @@
 # Logging
-function log!(rp::Union{InitReport, SubReport}, msg::String, data::Any, level::Symbol...)
+function log!(rp::Union{Logger, SubReport}, msg::String, data::Any, level::Symbol...)
     if haskey(rp.loglevel, :report)
         if !isempty(level ∩ rp.loglevel[:report])
             push!(rp.messages, ReportMessage(msg, data))
@@ -19,10 +19,6 @@ function log!(rp::Union{InitReport, SubReport}, msg::String, data::Any, level::S
     data
 end
 
-function log!(rp::SubReport, msg::String, level::Symbol...)
+function log!(rp::Union{Logger, SubReport}, msg::String, level::Symbol...)
     log!(rp, msg, nothing, level...)
-end
-
-function logger(rp::SubReport)
-    args -> log!(rp, args...)
 end

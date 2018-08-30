@@ -22,14 +22,19 @@ function cDIIS(problem::ScfProblem, history::ScfIterState, lg::Logger; n_diis_si
     cDIIS(n_diis_size, sync_spins, conditioning_threshold, coefficient_threshold, history)
 end
 
-function Base.copy(cdiis::cDIIS)
-    cDIIS(cdiis.n_diis_size, cdiis.sync_spins, cdiis.conditioning_threshold, cdiis.coefficient_threshold, copy(history))
+function copy(cdiis::cDIIS)
+    stateα_copy = copy(cdiis.history[1])
+    state_copy = cdiis.history[1] == cdiis.history[2] ? (stateα_copy, stateα_copy) : (stateα_copy, copy(cdiis.history[2]))
+    cDIIS(cdiis.n_diis_size, cdiis.sync_spins, cdiis.conditioning_threshold, cdiis.coefficient_threshold, state_copy)
 end
 
 function iterate(cdiis::cDIIS, subreport::SubReport)
-    rp = new_subreport(subreport)
-    rp.state = compute_next_iterate(rp.algorithm, rp.source.state)
-    return rp.algorithm, rp
+    lg = Logger(subreport)
+    algorithm = copy(cdiis)
+
+    state = compute_next_iterate(algorithm, subreport.state)
+
+    return algorithm, new_subreport(algorithm, state, lg, subreport)
 end
 
 function needs_error(::cDIIS)

@@ -34,7 +34,7 @@ function initialise(uninit::UninitialisedAlgorithm, problem::ScfProblem, initsta
             log!(lg, "Logger", initlg, :debug, :initreport)
         end
     end
-    uninit.algorithmtype(problem, initstate, rp, uninit.args...; global_params..., uninit.params...)
+    uninit.algorithmtype(problem, initstate, lg, uninit.args...; global_params..., uninit.params...)
 end
 
 struct Setup <: Algorithm end
@@ -53,11 +53,12 @@ function setup(uninit::UninitialisedAlgorithm, problem::ScfProblem, initstate::S
     # Construct report and add already existing log messages.
     log!(lg, "setting up initial report", :debug, :firstreportsetup)
     report = Report(problem, initstate, missing, algorithm, Vector{SubReport}(), loglevel)
-    subreport = SubReport(Setup(), problem, initstate, missing, rp.messages, nothing, loglevel)
-    push!(report.history, subreport)
 
     # log a fancy header
-    log!(subreport, @sprintf("%5s %14s %14s %14s %15s %12s", "iter", "e1e", "e2e", "etot", "scf_error", "n_applies"), :info)
+    log!(lg, @sprintf("%5s %14s %14s %14s %15s %12s", "iter", "e1e", "e2e", "etot", "scf_error", "n_applies"), :info)
+
+    subreport = SubReport(Setup(), problem, initstate, missing, lg.messages, nothing, loglevel)
+    push!(report.history, subreport)
 
     # return new report
     report
