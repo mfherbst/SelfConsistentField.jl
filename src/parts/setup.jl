@@ -34,7 +34,10 @@ function initialise(uninit::UninitialisedAlgorithm, problem::ScfProblem, initsta
             log!(lg, "Logger", initlg, :debug, :initreport)
         end
     end
-    uninit.algorithmtype(problem, initstate, lg, uninit.args...; global_params..., uninit.params...)
+    # Not all algorithms have to be initialized
+    if applicable(uninit.algorithmtype, problem, initstate, lg, uninit.args...)
+        uninit.algorithmtype(problem, initstate, lg, uninit.args...; global_params..., uninit.params...)
+    end
 end
 
 struct Setup <: Algorithm end
