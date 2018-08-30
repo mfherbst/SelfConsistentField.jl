@@ -3,12 +3,13 @@ mutable struct ScfPipeline <: Algorithm
     subreports::Vector{SubReport}
 end
 
-function ScfPipeline(problem::ScfProblem, state::ScfIterState, lg::Logger, algorithms::Algorithm...)
+function ScfPipeline(::ScfProblem, ::ScfIterState, lg::Logger, algorithms::Algorithm...)
+    log!(lg, "constructing ScfPipeline", :debug, :scfpipeline, :setup)
     ScfPipeline(collect(algorithms), Vector{SubReport}())
 end
 
 function copy(sp::ScfPipeline)
-    ScfPipeline(map(copy, sp.algorithms), copy(sp.subreports))
+    ScfPipeline(map(copy, sp.algorithms), Base.copy(sp.subreports))
 end
 
 function iterate(scfpipeline::ScfPipeline, rp::SubReport)
@@ -39,5 +40,5 @@ function iterate(scfpipeline::ScfPipeline, rp::SubReport)
         end
     end
 
-    pipe, new_subreport(pipe, subsubreport, lg, rp)
+    pipe, new_subreport(pipe, subsubreport.state, lg, rp)
 end

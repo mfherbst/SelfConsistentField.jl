@@ -27,14 +27,16 @@ function (new_algorithm_type::Type{T})(args...; params...) where {T<:Algorithm}
 end
 
 function initialise(uninit::UninitialisedAlgorithm, problem::ScfProblem, initstate::ScfIterState, lg::Logger; global_params...)
-    for arg in uninit.args
-        if arg isa UninitialisedAlgorithm
-            initlg = Logger(rp)
-            algorithm = initialise(uninit, problem, initstate, initlg; global_params..., params...)
-            log!(lg, "Logger", initlg, :debug, :initreport)
-        end
+    function init_uninitialised(i)
+        !(uninit.args[i] isa UninitialisedAlgorithm) ? uninit.args[i] : begin
+                initlg = Logger(lg)
+                algorithm = initialise(uninit.args[i], problem, initstate, initlg; global_params..., uninit.args[i].params...)
+                log!(lg, "Logger", initlg, :debug, :initreport)
+                algorithm
+            end
     end
-    uninit.algorithmtype(problem, initstate, lg, uninit.args...; global_params..., uninit.params...)
+    initialised_args = ntuple(init_uninitialised, length(uninit.args))
+    uninit.algorithmtype(problem, initstate, lg, initialised_args...; global_params..., uninit.params...)
 end
 
 struct Setup <: Algorithm end

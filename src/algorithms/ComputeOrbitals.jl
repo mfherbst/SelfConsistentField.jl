@@ -1,5 +1,7 @@
 struct ComputeOrbitals <: Algorithm end
 
+copy(::ComputeOrbitals) = ComputeOrbitals()
+
 """
 Diagonalise the Fock matrix and return a new eigensolution
 """

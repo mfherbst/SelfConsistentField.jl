@@ -1,5 +1,7 @@
 struct ComputeFock <: Algorithm end
 
+copy(::ComputeFock) = ComputeFock()
+
 function iterate(::ComputeFock, rp::SubReport)
     lg = Logger(rp)
     log!(lg, "Calculating new fock matrix", :debug, :computefock)

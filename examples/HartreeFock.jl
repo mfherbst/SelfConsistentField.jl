@@ -124,15 +124,16 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     end
 
     #ecdiis = FallbackMechanism(EDIIS(), cDIIS(); n_fallback_iterations = 5, fallback_predicate = nrtuff)
-    #roothan = ScfPipeline(
-    #                      ComputeOrbitals(),
-    #                      ComputeDensity(),
-    #                      ComputeFock()
-    #                     )
+    roothan = ScfPipeline(
+                          ComputeOrbitals(),
+                          ComputeDensity(),
+                          ComputeFock()
+                         )
 
-    algorithm = cDIIS()
-    #algorithm = ScfPipeline(
-    #    roothan,
+    algorithm = ScfPipeline(
+        roothan,
+        roothan,
+        cDIIS()
     #    (
     #     Barrier(
     #             EDIIS(),
@@ -146,7 +147,7 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     #     between_errnorm(10e-2, 10e-7)
     #    ),
     #    ConvergenceCheck(; max_error_norm = 10e-10)
-    #)
+    )
 
     #acceleration = ediis, cediis 
     #
