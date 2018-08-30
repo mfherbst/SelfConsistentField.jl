@@ -20,8 +20,12 @@ function DiisHistory(n_diis_size::Int)
     )
 end
 
-function Base.copy(dh::DiisHistory)
-    DiisHistory(copy(dh.iterate), copy(dh.error), copy(dh.iterationhistory), copy(dh.density), copy(energies), dh.n_diis_size)
+function copy(cb::CircularBuffer{T}) where {T}
+    append!(CircularBuffer{T}(cb.capacity), cb)
+end
+
+function copy(dh::DiisHistory)
+    DiisHistory(copy(dh.iterate), copy(dh.error), copy(dh.iterationhistory), copy(dh.density), copy(dh.energies), dh.n_diis_size)
 end
 
 """
