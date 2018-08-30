@@ -36,6 +36,7 @@ function initialise(uninit::UninitialisedAlgorithm, problem::ScfProblem, initsta
             end
     end
     initialised_args = ntuple(init_uninitialised, length(uninit.args))
+    log!(lg, "algorithm type to be expanded", uninit.algorithmtype, :debug)
     uninit.algorithmtype(problem, initstate, lg, initialised_args...; global_params..., uninit.params...)
 end
 
@@ -50,6 +51,9 @@ function setup(uninit::UninitialisedAlgorithm, problem::ScfProblem, initstate::S
     # Run initial algorithm configuration
     initlg = Logger(loglevel)
     algorithm = initialise(uninit, problem, initstate, initlg; params...)
+    if algorithm isa UninitialisedAlgorithm
+        error("Some algorithm could not be initialised using its constructor.")
+    end
     log!(lg, "Logger", initlg, :debug, :initreport)
 
     # Construct report and add already existing log messages.
