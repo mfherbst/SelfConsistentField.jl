@@ -1,36 +1,36 @@
 mutable struct ScfPipeline <: Algorithm
     algorithms::Vector{Algorithm}
     subreports::Vector{SubReport}
-    function ScfPipeline(algorithms::Algorithm...)
-        new(collect(algorithms), Vector{SubReport}())
-    end
 end
 
-function setup(sp::ScfPipeline, problem::ScfProblem, state::ScfIterState, params::Parameters)
-    algorithms_setup = Vector{Algorithm}()
-    for algorithm in sp.algorithms
-        push!(algorithms_setup, setup_if_neccessary(algorithm, problem, state, params))
-    end
-    return ScfPipeline(algorithms_setup...)
+function ScfPipeline(problem::ScfProblem, state::ScfIterState, lg::Logger, algorithms::Algorithm...)
+    ScfPipeline(collect(algorithms), Vector{SubReport}())
 end
 
-function iterate(scfpipeline::ScfPipeline, subreport::SubReport)
-    if !ismissing(subreport.convergence)
-        subreport.convergence.is_converged && return nothing
+function copy(sp::ScfPipeline)
+    ScfPipeline(map(copy, sp.algorithms), copy(sp.subreports))
+end
+
+function iterate(scfpipeline::ScfPipeline, rp::SubReport)
+    lg = Logger(rp)
+    pipe = copy(scfpipeline)
+
+    if !ismissing(rp.convergence)
+        rp.convergence.is_converged && return nothing
     end
 
     # Copy the subreport for the new iteration
-    subsubreport = subreport
-    for algorithm in scfpipeline.algorithms
-        log!(subsubreport, "Applying Algorithm ", typeof(algorithm), :debug)
+    subsubreport = rp
+    for algorithm in pipe.algorithms
+        log!(lg, "Applying Algorithm ", typeof(algorithm), :debug)
         res = iterate(algorithm, subsubreport)
 
         # if the iteration is not done, reset done variable
         if res != nothing
             _, subsubreport = res
-            push!(scfpipeline.subreports, subsubreport)
+            push!(pipe.subreports, subsubreport)
 
-            if !ismissing(subreport.convergence) ? subreport.convergence.is_converged : false
+            if !ismissing(subsubreport.convergence) ? subsubreport.convergence.is_converged : false
                 log!(subsubreport, "Convergence reached", :debug)
                 break
             end
@@ -39,5 +39,5 @@ function iterate(scfpipeline::ScfPipeline, subreport::SubReport)
         end
     end
 
-    scfpipeline, subsubreport
+    pipe, new_subreport(pipe, subsubreport, lg, rp)
 end
