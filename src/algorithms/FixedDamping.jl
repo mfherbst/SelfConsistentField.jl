@@ -10,10 +10,10 @@ mutable struct FixedDamping <: Algorithm
     end
 end
 
-function initialize(fd::FixedDamping, problem::ScfProblem, iterstate::ScfIterState, params::Parameters)
+function setup(fd::FixedDamping, problem::ScfProblem, iterstate::ScfIterState, params::Parameters)
     # TODO needs to be implemented the same way in all other algorithms
-    fd.damping = coalesce(fd.damping, get(params, :damping_value, missing), 0.4)
-    return iterstate
+    damping = coalesce(fd.damping, get(params, :damping_value, missing), 0.4)
+    return FixedDamping(damping, fd.prev_iterate)
 end
 
 function iterate(fd::FixedDamping, subreport::SubReport)

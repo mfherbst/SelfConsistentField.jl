@@ -12,27 +12,22 @@ mutable struct cDIIS <: Algorithm
     coefficient_threshold::Union{Missing, Float64}
     state::Tuple{DiisState, DiisState}
     # TODO rename state to history
-
-    function cDIIS(;n_diis_size = missing, sync_spins = missing, conditioning_threshold = missing, coefficient_threshold = missing)
-        new(n_diis_size, sync_spins, conditioning_threshold, coefficient_threshold)
-    end
 end
 
-function initialize(cdiis::cDIIS, problem::ScfProblem, iterstate::ScfIterState, params::Parameters)
-    # TODO needs to become a separate function using reflection
-    cdiis.n_diis_size = ismissing(cdiis.n_diis_size) & haskey(params,:n_diis_size) ? params[:n_diis_size] : 5
-    cdiis.sync_spins = ismissing(cdiis.sync_spins) & haskey(params,:sync_spins) ? params[:sync_spins] : true
-    cdiis.conditioning_threshold = ismissing(cdiis.conditioning_threshold) & haskey(params,:conditioning_threshold) ? params[:conditioning_threshold] : 1e-14
-    cdiis.coefficient_threshold = ismissing(cdiis.coefficient_threshold) & haskey(params,:coefficient_threshold) ? params[:coefficient_threshold] : 10e-6
+function cDIIS(problem::ScfProblem, state::ScfIterState, rp::InitReport; n_diis_size = 5, sync_spins = true, conditioning_threshold = 1e-14, coefficient_threshold = 10e-6, params...)
+    log!(rp, "setting up cDIIS", :info, :cdiis, :setup)
+    stateα = DiisState(n_diis_size)
+    state = spincount(get_iterate_matrix(state)) == 2 ? (stateα, DiisState(cdiis.n_diis_size)) : (stateα, stateα)
+    log!(rp, "number of states", length(state), :debug, :cdis, :setup)
 
-    stateα = DiisState(cdiis.n_diis_size)
-    cdiis.state = spincount(get_iterate_matrix(iterstate)) == 2 ? (stateα, DiisState(cdiis.n_diis_size)) : (stateα, stateα)
-    return iterstate
+    cDIIS(n_diis_size, sync_spins, conditioning_threshold, coefficient_threshold, state)
 end
 
 function iterate(cdiis::cDIIS, subreport::SubReport)
     rp = new_subreport(subreport)
     rp.state = compute_next_iterate(cdiis, rp.source.state)
+    rp.algorithm = cdiis
+    println(cdiis.state[1])
     return cdiis, rp
 end
 

@@ -21,3 +21,10 @@ mutable struct Report
     history::Vector{SubReport}
     loglevel::LogLevel
 end
+
+struct InitReport
+    loglevel::LogLevel
+    messages::Vector{ReportMessage}
+end
+InitReport(loglevel::LogLevel) = InitReport(loglevel, Vector{ReportMessage}())
+InitReport(initrp::InitReport) = InitReport(initrp.loglevel, Vector{ReportMessage}())

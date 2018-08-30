@@ -6,11 +6,12 @@ mutable struct ScfPipeline <: Algorithm
     end
 end
 
-function initialize(sp::ScfPipeline, problem::ScfProblem, state::ScfIterState, params::Parameters)
+function setup(sp::ScfPipeline, problem::ScfProblem, state::ScfIterState, params::Parameters)
+    algorithms_setup = Vector{Algorithm}()
     for algorithm in sp.algorithms
-        state = initialize_if_neccessary(algorithm, problem, state, params)
+        push!(algorithms_setup, setup_if_neccessary(algorithm, problem, state, params))
     end
-    return state
+    return ScfPipeline(algorithms_setup...)
 end
 
 function iterate(scfpipeline::ScfPipeline, subreport::SubReport)
