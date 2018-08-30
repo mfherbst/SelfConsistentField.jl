@@ -3,13 +3,16 @@ struct ComputeOrbitals <: Algorithm end
 """
 Diagonalise the Fock matrix and return a new eigensolution
 """
-function iterate(comporb::ComputeOrbitals, rp::SubReport)
-    newrp = new_subreport(rp)
+function iterate(::ComputeOrbitals, rp::SubReport)
+    lg = Logger(rp)
+    log!(lg, "Computing density", :debug, :computeorbitals)
 
     orben, orbcoeff = compute_orbitals(rp.problem, rp.state.fock)
+    log!(lg, "New orben", orben, :debug, :computeorbitals)
+    log!(lg, "New orbcoeff", orbcoeff, :debug, :computeorbitals)
 
-    newrp.state = FockIterState(rp.state.fock, rp.state.error_pulay, rp.state.energies, orbcoeff, orben, rp.state.density)
-    return comporb, newrp
+    state = FockIterState(rp.state.fock, rp.state.error_pulay, rp.state.energies, orbcoeff, orben, rp.state.density)
+    return ComputeOrbitals(), new_subreport(ComputeOrbitals(), state, lg, rp)
 end
 
 # Separate function to allow orbitals to be computed in guesses
