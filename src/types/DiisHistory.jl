@@ -8,20 +8,24 @@ mutable struct DiisHistory
     density::CircularBuffer
     energies::CircularBuffer
     n_diis_size::Int
+end
 
-    function DiisHistory(n_diis_size::Int)
-        new(CircularBuffer{AbstractArray}(n_diis_size),
-            CircularBuffer{AbstractArray}(n_diis_size),
-            CircularBuffer{AbstractArray}(n_diis_size),
-            CircularBuffer{AbstractArray}(n_diis_size),
-            CircularBuffer{Dict}(n_diis_size),
-            n_diis_size
-        )
-    end
+function DiisHistory(n_diis_size::Int)
+    DiisHistory(CircularBuffer{AbstractArray}(n_diis_size),
+        CircularBuffer{AbstractArray}(n_diis_size),
+        CircularBuffer{AbstractArray}(n_diis_size),
+        CircularBuffer{AbstractArray}(n_diis_size),
+        CircularBuffer{Dict}(n_diis_size),
+        n_diis_size
+    )
+end
+
+function Base.copy(dh::DiisHistory)
+    DiisHistory(copy(dh.iterate), copy(dh.error), copy(dh.iterationhistory), copy(dh.density), copy(energies), dh.n_diis_size)
 end
 
 """
-    Pushes current iterate and error matrices to historys of both spin types
+    Pushes current iterate and error matrices to histories of both spin types
 """
 function push_iterate!(algorithm::Algorithm, history::DiisHistory, iterate::AbstractArray, error::Union{AbstractArray,Nothing} = nothing, density::Union{AbstractArray,Nothing} = nothing, energies::Union{Dict,Nothing} = nothing)
     pushfirst!(history.iterate,  iterate)

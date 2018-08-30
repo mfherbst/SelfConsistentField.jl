@@ -26,12 +26,12 @@ function (new_algorithm_type::Type{T})(args...; params...) where {T<:Algorithm}
                       new_algorithm_type(args...; params...)
 end
 
-function initialise(uninit::UninitialisedAlgorithm, problem::ScfProblem, initstate::ScfIterState, rp::InitReport; global_params...)
+function initialise(uninit::UninitialisedAlgorithm, problem::ScfProblem, initstate::ScfIterState, lg::Logger; global_params...)
     for arg in uninit.args
         if arg isa UninitialisedAlgorithm
-            initrp = InitReport(rp)
-            algorithm = initialise(uninit, problem, initstate, initrp; global_params..., params...)
-            log!(rp, "InitReport", initrp, :debug, :initreport)
+            initlg = Logger(rp)
+            algorithm = initialise(uninit, problem, initstate, initlg; global_params..., params...)
+            log!(lg, "Logger", initlg, :debug, :initreport)
         end
     end
     uninit.algorithmtype(problem, initstate, rp, uninit.args...; global_params..., uninit.params...)
@@ -42,16 +42,16 @@ struct Setup <: Algorithm end
 function setup(uninit::UninitialisedAlgorithm, problem::ScfProblem, initstate::ScfIterState;
                     params::Parameters = Parameters(), loglevel::LogLevel)
 
-    rp = InitReport(loglevel)
-    log!(rp, "Starting Initialization", :debug)
+    lg = Logger(loglevel)
+    log!(lg, "Starting Initialization", :debug)
     
     # Run initial algorithm configuration
-    initrp = InitReport(loglevel)
-    algorithm = initialise(uninit, problem, initstate, initrp; params...)
-    log!(rp, "InitReport", initrp, :debug, :initreport)
+    initlg = Logger(loglevel)
+    algorithm = initialise(uninit, problem, initstate, initlg; params...)
+    log!(lg, "Logger", initlg, :debug, :initreport)
 
     # Construct report and add already existing log messages.
-    log!(rp, "setting up initial report", :debug, :firstreportsetup)
+    log!(lg, "setting up initial report", :debug, :firstreportsetup)
     report = Report(problem, initstate, missing, algorithm, Vector{SubReport}(), loglevel)
     subreport = SubReport(Setup(), problem, initstate, missing, rp.messages, nothing, loglevel)
     push!(report.history, subreport)

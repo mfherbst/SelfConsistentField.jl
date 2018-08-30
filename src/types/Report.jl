@@ -22,9 +22,10 @@ mutable struct Report
     loglevel::LogLevel
 end
 
-struct InitReport
+struct Logger
     loglevel::LogLevel
     messages::Vector{ReportMessage}
 end
-InitReport(loglevel::LogLevel) = InitReport(loglevel, Vector{ReportMessage}())
-InitReport(initrp::InitReport) = InitReport(initrp.loglevel, Vector{ReportMessage}())
+Logger(loglevel::LogLevel) = Logger(loglevel, Vector{ReportMessage}())
+Logger(rp::SubReport) = Logger(rp.loglevel, Vector{ReportMessage}())
+Logger(logger::Logger) = Logger(logger.loglevel, Vector{ReportMessage}())
