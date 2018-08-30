@@ -4,27 +4,27 @@
 mutable struct EDIIS <: Algorithm
     n_diis_size::Union{Missing, Int}
     coefficient_threshold::Union{Missing,Float64}
-    state::Tuple{DiisState, DiisState}
-    # TODO rename state to history
+    history::Tuple{DiisHistory, DiisHistory}
+    # TODO rename history to history
 
     function EDIIS(;n_diis_size::Union{Missing, Int} = missing, coefficient_threshold::Union{Missing, Float64} = missing)
         new(n_diis_size, coefficient_threshold)
     end
 end
 
-function setup(ediis::EDIIS, problem::ScfProblem, iterstate::ScfIterState, params::Parameters)
+function setup(ediis::EDIIS, problem::ScfProblem, state::ScfIterState, params::Parameters)
     # TODO needs to become a separate function using reflection
     n_diis_size = ismissing(ediis.n_diis_size) & haskey(params,:n_diis_size) ? params[:n_diis_size] : 5
     coefficient_threshold = ismissing(ediis.coefficient_threshold) & haskey(params,:coefficient_threshold) ? params[:coefficient_threshold] : 10e-6
 
-    stateα = DiisState(n_diis_size)
-    state = spincount(get_iterate_matrix(iterstate)) == 2 ? (stateα, DiisState(n_diis_size)) : (stateα, stateα)
-    return EDIIS(n_diis_size, coefficient_threshold, state)
+    historyα = DiisHistory(n_diis_size)
+    history = spincount(get_iterate_matrix(state)) == 2 ? (historyα, DiisHistory(n_diis_size)) : (historyα, historyα)
+    return EDIIS(n_diis_size, coefficient_threshold, history)
 end
 
 function iterate(ediis::EDIIS, subreport::SubReport)
     rp = new_subreport(subreport)
-    rp.state = compute_next_iterate(ediis, rp.source.state)
+    rp.history = compute_next_iterate(ediis, rp.source.history)
     return ediis, rp
 end
 
@@ -34,7 +34,7 @@ end
 function diis_solve_coefficients(ediis::EDIIS, B::AbstractArray)
     m = size(B,1)
     # TODO put the energies somewhere else
-    E = map(energies -> energies["total"], ediis.state[1].energies)
+    E = map(energies -> energies["total"], ediis.history[1].energies)
 
     function f(x)
         c = x.^2/sum(x.^2)
@@ -61,15 +61,15 @@ end
 """
     Linear System Matrix for the EDIIS accelerator.
 """
-function diis_build_matrix(::EDIIS, state::DiisState)
-    @assert state.n_diis_size > 0
-    @assert state.iterate.length > 0
+function diis_build_matrix(::EDIIS, history::DiisHistory)
+    @assert history.n_diis_size > 0
+    @assert history.iterate.length > 0
 
-    # B has dimension m <= state.n_diis_size, since in the
+    # B has dimension m <= history.n_diis_size, since in the
     # beginning of the iteration we do not have the full number of
     # previous iterates yet.
 
-    m = min(state.n_diis_size, length(state.iterate))
+    m = min(history.n_diis_size, length(history.iterate))
 
     B = zeros(m,m)
 
@@ -99,28 +99,28 @@ function diis_build_matrix(::EDIIS, state::DiisState)
     # use a Circular Buffer again to store the rows.
 
     # Definition of matrix elements
-    b(i,j) = tr((state.iterate[i] - state.iterate[j]) * (state.density[i] - state.density[j]))
+    b(i,j) = tr((history.iterate[i] - history.iterate[j]) * (history.density[i] - history.density[j]))
 
     # Fill the first row with newly calculated values and cache them
     # in a newly created Circular Buffer
-    newValues = CircularBuffer{Any}(state.n_diis_size)
+    newValues = CircularBuffer{Any}(history.n_diis_size)
     map(j -> push!(newValues, b(1,j)), 1:m)
     fill!(newValues, 0)
 
-    # Push newly calculated row to the row buffer. We use the iterationstate to
+    # Push newly calculated row to the row buffer. We use the iterationhistory to
     # store these.
-    pushfirst!(state.iterationstate, newValues)
+    pushfirst!(history.iterationhistory, newValues)
 
     # Now fill all rows with cached values,
     # push a '0' on each buffer to prepare it for the next iteration
     for i in 1:m
-        B[i,1:m] = state.iterationstate[i][1:m]
+        B[i,1:m] = history.iterationhistory[i][1:m]
 
         # Since we want to use this buffer as the 2nd row of A in the next
         # iteration we need the following layout of the buffer
         #   0 A[1,1] A[1,2] … A[1,m-1]
         # so we need to push a 0 to the beginning
-        pushfirst!(state.iterationstate[i], 0)
+        pushfirst!(history.iterationhistory[i], 0)
     end
 
     return Symmetric(B)
