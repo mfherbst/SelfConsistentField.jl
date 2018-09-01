@@ -16,9 +16,7 @@ function iterate(scfpipeline::ScfPipeline, rp::SubReport)
     lg = Logger(rp)
     newpipe = ScfPipeline(Vector{Algorithm}(), Vector{SubReport}())
 
-    if !ismissing(rp.convergence)
-        rp.convergence.is_converged && return nothing
-    end
+    !ismissing(rp.convergence) && rp.convergence.is_converged && return nothing
 
     # Copy the subreport for the new iteration
     subsubreport = rp
@@ -32,8 +30,8 @@ function iterate(scfpipeline::ScfPipeline, rp::SubReport)
             push!(newpipe.algorithms, newalgorithm)
             push!(newpipe.subreports, subsubreport)
 
-            if !ismissing(subsubreport.convergence) ? subsubreport.convergence.is_converged : false
-                log!(subsubreport, "Convergence reached", :debug)
+            if !ismissing(subsubreport.convergence) && subsubreport.convergence.is_converged
+                log!(subsubreport, "Convergence reached", :info)
                 break
             end
         else
@@ -41,5 +39,5 @@ function iterate(scfpipeline::ScfPipeline, rp::SubReport)
         end
     end
 
-    newpipe, new_subreport(newpipe, subsubreport.state, lg, rp)
+    newpipe, new_subreport(newpipe, lg, subsubreport)
 end

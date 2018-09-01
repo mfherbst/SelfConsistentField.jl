@@ -14,10 +14,9 @@ function ConvergenceCheck(problem::ScfProblem, state::ScfIterState, lg::Logger;
                           max_energy_1e_change::Number = 5e-5, params...)
 
     function convergencecondition(convstate::ScfConvergence)
-        (convstate.error_norm >= max_error_norm) |
-        (convstate.energy_change["total"] >= max_energy_total_change) |
-        (convstate.energy_change["1e"] >= max_energy_1e_change) ?
-        false : true
+        !(convstate.error_norm >= max_error_norm &&
+          norm(convstate.energy_change["total"]) >= max_energy_total_change &&
+          norm(convstate.energy_change["1e"]) >= max_energy_1e_change)
     end
     ConvergenceCheck(problem, state, lg, convergencecondition)
 end
@@ -25,6 +24,8 @@ end
 function iterate(cc::ConvergenceCheck, rp::SubReport)
     newcc = ConvergenceCheck(cc.convergencecondition, rp.state)
     lg = Logger(rp)
+
+    !ismissing(rp.convergence) && rp.convergence.is_converged && return nothing
 
     if ismissing(cc.olditerstate)
         return newcc, new_subreport(newcc, rp)
@@ -40,7 +41,7 @@ function iterate(cc::ConvergenceCheck, rp::SubReport)
         updated_conv_data = ScfConvergence(error_norm, energy_change, false)
         is_converged = cc.convergencecondition(updated_conv_data)
         convergence = ScfConvergence(updated_conv_data.error_norm, updated_conv_data.energy_change, is_converged)
-        log!(lg, "new convergence", convergence, :info)
+        log!(lg, "new convergence", convergence, :debug, :convergencecheck)
 
         return newcc, SubReport(newcc, rp.problem, rp.state, convergence, lg.messages, rp, rp.loglevel)
     end

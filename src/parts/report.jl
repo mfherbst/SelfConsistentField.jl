@@ -3,11 +3,15 @@ Base.IteratorSize(::Report) = Base.SizeUnknown()
 # Iteration functions for algorithms
 Base.iterate(report::Report) = (report, report.history[end])
 function Base.iterate(report::Report, lastsubreport::SubReport)
+
+    !ismissing(lastsubreport.convergence) && lastsubreport.convergence.is_converged && return nothing
+
     iterresult = iterate(report.algorithm, lastsubreport)
     
     # If the underlying algorithm is done, we are done :-)
     if iterresult == nothing
-        log!(report.history[end], "Algorithm is done", :info)
+
+        log!(report.history[end], "Algorithm is done but convergence was not reached.", :info)
         return nothing
     end
 
