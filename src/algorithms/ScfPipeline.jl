@@ -31,7 +31,7 @@ function iterate(scfpipeline::ScfPipeline, rp::SubReport)
             push!(newpipe.subreports, subsubreport)
 
             if !ismissing(subsubreport.convergence) && subsubreport.convergence.is_converged
-                log!(subsubreport, "Convergence reached", :info)
+                log!(subsubreport, "Convergence reached", :debug, :scfpipeline)
                 break
             end
         else

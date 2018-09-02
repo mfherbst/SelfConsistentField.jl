@@ -21,9 +21,8 @@ function (new_algorithm_type::Type{T})(args...; params...) where {T<:Algorithm}
 
     # expand Tuple notation in arguments for conditional execution
     newargs = ntuple(conv_to_alg, length(args))
-    #args == newargs && throw(MethodError(new_algorithm_type, args))
     args == newargs ? UninitialisedAlgorithm(new_algorithm_type, args, params) :
-                      new_algorithm_type(args...; params...)
+                      new_algorithm_type(newargs...; params...)
 end
 
 function initialise(uninit::UninitialisedAlgorithm, problem::ScfProblem, initstate::ScfIterState, lg::Logger; global_params...)
