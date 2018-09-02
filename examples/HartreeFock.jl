@@ -133,14 +133,15 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     algorithm = ScfPipeline(
         roothan,
         cDIIS(),
-    #    (
-    #     Barrier(
+        (
+         Barrier(
     #             EDIIS(),
-    #             (cDIIS(), before_errnorm(10e-5)),
-    #             after_errnorm(10e-2)
-    #            ),
-    #     before_errnorm(10e-7)
-    #    ),
+                 (cDIIS(), before_errnorm(10e-5)),
+                 (cDIIS(), before_errnorm(10e-5)),
+                 after_errnorm(10e-2)
+                ),
+         before_errnorm(10e-7)
+        ),
     #    (
     #     FixedDamping(),
     #     between_errnorm(10e-2, 10e-7)

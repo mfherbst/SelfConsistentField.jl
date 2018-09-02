@@ -3,12 +3,21 @@ mutable struct ConditionalExec <: Algorithm
     condition::Function
 end
 
-function setup(ce::ConditionalExec, problem::ScfProblem, state::ScfIterState, params::Parameters)
-    newalg = setup_if_neccessary(ce.algorithm, problem, state, params)
-    ConditionalExec(newalg, ce.condition)
-end
+ConditionalExec(uninit::UninitialisedAlgorithm, condition::Function; params...) = invoke(ConditionalExec, Tuple{Vararg{Any,N} where N}, uninit, condition; params...)
+
+ConditionalExec(problem::ScfProblem, state::ScfIterState, lg::Logger, algorithm::Algorithm, condition::Function; params...) = ConditionalExec(algorithm, condition)
 
 function iterate(ce::ConditionalExec, subreport::SubReport)
-    ce.algorithm, rp = ce.condition(subreport) ? iterate(ce.algorithm, subreport) : (ce.algorithm, subreport)
-    return ce, rp
+    lg = Logger(subreport)
+
+    if ce.condition(subreport)
+        log!(lg, "applying algorithm", typeof(ce.algorithm))
+        res = iterate(ce.algorithm, subreport)
+        isempty(res) && return res
+
+        resalg, newrp = res
+        newalg = ConditionalExec(resalg, ce.condition)
+        return newalg, new_subreport(newalg, lg, newrp)
+    end
+    return ce, subreport
 end
