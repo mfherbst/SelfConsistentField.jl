@@ -142,10 +142,10 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
                 ),
          before_errnorm(10e-7)
         ),
-    #    (
-    #     FixedDamping(),
-    #     between_errnorm(10e-2, 10e-7)
-    #    ),
+        (
+         FixedDamping(),
+         between_errnorm(10e-2, 10e-7)
+        ),
         ConvergenceCheck(; max_error_norm = 10e-10)
     )
 
