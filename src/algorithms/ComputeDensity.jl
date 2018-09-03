@@ -3,8 +3,6 @@ Compute the new density from the new orbital coefficients
 """
 struct ComputeDensity <: Algorithm end
 
-copy(::ComputeDensity) = ComputeDensity()
-
 function iterate(::ComputeDensity, rp::SubReport)
     lg = Logger(rp)
     log!(lg, "Computing density", :debug, :computedensity)
@@ -13,7 +11,8 @@ function iterate(::ComputeDensity, rp::SubReport)
     log!(lg, "New density", density, :debug, :computedensity)
 
     state = FockIterState(rp.state.fock, rp.state.error_pulay, rp.state.energies, rp.state.orbcoeff, rp.state.orben, density)
-    return ComputeDensity(), new_subreport(ComputeDensity(), state, lg, rp)
+    newalg = ComputeDensity()
+    return newalg, new_subreport(newalg, state, lg, rp)
 end
 
 # Separate function to allow density to be computed in guesses

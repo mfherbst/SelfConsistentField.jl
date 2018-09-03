@@ -1,19 +1,19 @@
 #
 # Simple damping
 #
-mutable struct FixedDamping <: Algorithm
+struct FixedDamping <: Algorithm
     damping::Union{Missing, Float64}                   # Damping coefficient
 
     prev_iterate::Union{Nothing,ScfIterState}  # Previous iterate
 end
 
-function FixedDamping(problem::ScfProblem, iterstate::ScfIterState, lg::Logger; damping = 0.4, params...)
+function FixedDamping(problem::ScfProblem, iterstate::ScfIterState, lg::Logger; damping=0.4, params...)
     FixedDamping(damping, iterstate)
 end
 
 function iterate(fd::FixedDamping, rp::SubReport)
     lg = Logger(rp)
-    log!(rp, "running FixedDamping", :debug)
+    log!(lg, "running FixedDamping", :debug)
 
 
     prev_mat = get_iterate_matrix(fd.prev_iterate)
