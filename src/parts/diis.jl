@@ -1,46 +1,135 @@
 """
-    Computes next iterate using DIIS
+    DIIS Matrix.
 """
-# TODO rename acc to algorithm
-function compute_next_iterate(acc::Union{cDIIS,EDIIS}, state::ScfIterState)
-    iterate = get_iterate_matrix(state)
+function compute_diis_matrix(diis_matrix_formula::Function, history::DiisHistory)
+    @assert history.n_diis_size > 0
+    @assert length(history.iterate) > 0
 
-    # Push iterate and error to history
-    map(σ -> push_iterate!(acc, acc.history[σ], spin(iterate, σ), spin(state.error_pulay, σ), spin(state.density, σ), state.energies), spinloop(iterate))
+    # B has dimension m <= history.n_diis_size, since in the
+    # beginning of the iteration we do not have the full number of
+    # previous iterates yet.
 
-    # To save memory we store only new_iterate once and pass views of it to the
-    # computation routines that write directly into the view.
-    new_iterate = zeros(size(iterate))
+    m = min(history.n_diis_size, length(history.iterate))
 
-    # Defining anonymous functions with given arguments improves readability later on.
-    matrix(σ) = diis_build_matrix(acc, acc.history[σ])
-    coefficients(A) = diis_solve_coefficients(acc, A)
-    compute(c, σ) = compute_next_iterate_matrix!(acc.history[σ], c, spin(new_iterate, σ), acc.coefficient_threshold)
+    B = zeros(m,m)
 
-    # If sync_spins is enabled, we need to calculate the coefficients using the
-    # merged matrix. This also means we need to remove the same number of
-    # matrices from both histrories.
-    if acc.sync_spins & (spincount(iterate) == 2)
-        A = merge_diis_matrices_spin_blocks(acc, matrix(1), matrix(2))
-        c, matrixpurgecount = coefficients(A)
-        map(σ -> compute(c, σ), spinloop(iterate))
-        map(σ -> purge_from_history(acc, acc.history[σ], matrixpurgecount + 1), spinloop(iterate)) # +1, since we have already pushed a new matrix!
-    else
-        # If we are calculating the spins separately, each spin has its own coefficients.
-        for σ in spinloop(iterate)
-            c, matrixpurgecount = coefficients(matrix(σ))
-            compute(c, σ)
-            purge_from_history(acc, acc.history[σ], matrixpurgecount + 1) # +1, since we have already pushed a new matrix!
-        end
+    # Since the Matrix B is symmetric, we only have to calculate
+    # the upper triagonal and can use the Julia object 'Symmetric'
+    # to fill the lower triagonal of the matrix. This also allows
+    # Julia to use optimized algorithems for symmetric matrices.
+    #
+    # The matrix B is filled in the following form:
+    #
+    # B[1,1] B[1,2] B[1,3] … B[1,m]
+    # 0      B[2,2] B[2,3] … B[2,m]
+    # 0      0      B[3,3] … B[3,m]
+    # ⋮      ⋮      ⋮      … ⋮     
+    # 0      0      0      … B[m,m]
+    #
+    # Note, that the values B[1,1] … B[1,m-1] will become the values
+    # of B[2,2] … B[2,m] in the next iteration. This means, that we effectively
+    # only have to calculate the first row and can reuse all consecutive ones.
+    #
+    # We would like to store the rows in such a way, that the storage variable
+    # can be mapped to a row immediately. Since the values are shifted to the
+    # right in each iteration and the last element is discarded it makes sense
+    # to use a Circular Buffer to hold each row.
+    #
+    # Since the last row is also discarded after the new row is calculated we
+    # use a Circular Buffer again to store the rows.
+
+    # Rename diis_matrix_formula for better readability.
+    # The entry in the ith row and jth column of B is b(i,j)
+    b = diis_matrix_formula
+
+    # Fill the first row with newly calculated values and cache them
+    # in a newly created Circular Buffer
+    newValues = CircularBuffer{Any}(history.n_diis_size)
+    map(j -> push!(newValues, b(1,j)), 1:m)
+    fill!(newValues, 0)
+
+    # Push newly calculated row to the row buffer. We use the iterationhistory to
+    # store these.
+    new_history = copy(history)
+    pushfirst!(new_history.iterationhistory, newValues)
+
+    # Now fill all rows with cached values,
+    # push a '0' on each buffer to prepare it for the next iteration
+    for i in 1:m
+        B[i,1:m] = new_history.iterationhistory[i][1:m]
+
+        # Since we want to use this buffer as the 2nd row of A in the next
+        # iteration we need the following layout of the buffer
+        #   0 A[1,1] A[1,2] … A[1,m-1]
+        # so we need to push a 0 to the beginning
+        pushfirst!(new_history.iterationhistory[i], 0)
     end
-    return update_iterate_matrix(state, new_iterate)
+
+    return Symmetric(B), new_history
 end
 
 """
-    Computes a new matrix to be used as Fock Matrix in next iteration
-    The function writes the result into the passed argument 'iterate'
+    Linear System Matrix for the cDIIS accelerator.
+    This is a hermitian matrix containing error overlaps B
+    and ones in the form
+    
+    A = B  1
+        1† 0
 """
-function compute_next_iterate_matrix!(history::DiisHistory, c::AbstractArray, iterate::SubArray, coefficient_threshold::Float64)
+function build_diis_linear_system_matrix(B::AbstractArray)
+    @assert size(B, 1) == size(B, 2)
+    m = size(B, 1)
+    # The matrix A is filled in the following form:
+    #
+    # B[1,1] B[1,2] B[1,3] … B[1,m] 1
+    # 0      B[2,2] B[2,3] … B[2,m] 1
+    # 0      0      B[3,3] … B[3,m] 1
+    # ⋮      ⋮      ⋮      … ⋮      ⋮
+    # 0      0      0      … B[m,m] 1
+    # 1      1      1      … 1      0
+    #
+    A = ones(m+1, m+1)
+    A[end,end] = 0
+    A[1:size(B, 1), 1:size(B, 2)] .= B
+    return Symmetric(A)
+end
+
+function compute_next_iterate(iterate::AbstractArray, history::Tuple{DiisHistory,DiisHistory}, diis_matrix_formula::Function, compute_diis_coefficients::Function, lg::Logger; params...)
+    # To save memory we store only new_iterate once and pass views of it to the
+    # computation routines that write directly into the view.
+    new_iterate = zeros(size(iterate))
+    purgecount = 0
+
+    # Only store precaclulated values for the DIIS matrix in the first spinblock history.
+    diis_matrix, new_historyα = compute_diis_matrix(diis_matrix_formula, history[1])
+    c, purgecount = compute_diis_coefficients(diis_matrix, lg; params...)
+    new_history = (new_historyα, history[2])
+    for σ in spinloop(iterate)
+        apply_diis_coefficients!(new_history[σ], c, spin(new_iterate, σ); params...)
+    end
+
+    return new_iterate, new_history, (purgecount, purgecount)
+end
+
+function compute_next_iterate_separating_spins(iterate::AbstractArray, history::Tuple{DiisHistory,DiisHistory}, diis_matrix_spinblock_formulas::Tuple{Function,Function}, compute_diis_coefficients::Function, lg::Logger; params...)
+    new_iterate = zeros(size(iterate))
+    new_history = [nothing, nothing]
+    purgecount = (0,0)
+
+    # If we are calculating the spins separately, each spin has its own coefficients.
+    for σ in spinloop(iterate)
+        diis_matrix, new_history[σ] = compute_diis_matrix(diis_matrix_formula, history[σ])
+        c, purgecount[σ] = compute_diis_coefficients(diis_matrix; params...)
+        apply_diis_coefficients!(new_history[σ], c, spin(new_iterate, σ); params...)
+    end
+    return new_iterate, collect(new_history), purgecount
+end
+
+"""
+    Computes new iterate and stores it in the passed argument "iterate"
+"""
+function apply_diis_coefficients!(history::DiisHistory, c::AbstractArray, iterate::SubArray; coefficient_threshold::Float64, params...)
+    @assert length(c) > 0
     # add very small coefficients to the largest one but always use the most
     # recent iterate matrix regardless of the coefficient value
     mask = map(x -> norm(x) >= coefficient_threshold, c)
@@ -54,4 +143,3 @@ function compute_next_iterate_matrix!(history::DiisHistory, c::AbstractArray, it
         iterate .+= c[i] * history.iterate[i]
     end
 end
-

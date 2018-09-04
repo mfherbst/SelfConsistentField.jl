@@ -20,7 +20,7 @@ function iterate(barrier::Barrier, subreport::SubReport)
             log!(lg, "Switching to algorithm", typeof(barrier.future_algorithm), :info, :changealgorithm)
     end
 
-    res = iterate(barrier.algorithm, subreport)
+    res = iterate(algorithm, subreport)
     res == nothing && return res
 
     resalgorithm, newsubreport = res

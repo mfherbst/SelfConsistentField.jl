@@ -2,39 +2,68 @@
     EDIIS
 """
 mutable struct EDIIS <: Algorithm
-    n_diis_size::Union{Missing, Int}
-    coefficient_threshold::Union{Missing,Float64}
+    n_diis_size::Int
+    coefficient_threshold::Float64
     history::Tuple{DiisHistory, DiisHistory}
-    # TODO rename history to history
+end
 
-    function EDIIS(;n_diis_size::Union{Missing, Int} = missing, coefficient_threshold::Union{Missing, Float64} = missing)
-        new(n_diis_size, coefficient_threshold)
+function EDIIS(problem::ScfProblem, state::ScfIterState, lg::Logger;
+               n_diis_size = 5, coefficient_threshold = 10e-6,
+               params...)
+
+    log!(lg, "setting up EDIIS", :info, :ediis, :setup)
+    historyα = DiisHistory(n_diis_size, need_density = true, need_energies = true)
+    if spincount(get_iterate_matrix(state)) == 2
+        history = (historyα, DiisHistory(n_diis_size, need_density = true, need_energies = true))
+    else
+        history = (historyα, historyα)
     end
+
+    EDIIS(n_diis_size, coefficient_threshold, history)
 end
 
-function setup(ediis::EDIIS, problem::ScfProblem, state::ScfIterState, params::Parameters)
-    # TODO needs to become a separate function using reflection
-    n_diis_size = ismissing(ediis.n_diis_size) & haskey(params,:n_diis_size) ? params[:n_diis_size] : 5
-    coefficient_threshold = ismissing(ediis.coefficient_threshold) & haskey(params,:coefficient_threshold) ? params[:coefficient_threshold] : 10e-6
+function iterate(ediis::EDIIS, rp::SubReport)
+    lg = Logger(rp)
 
-    historyα = DiisHistory(n_diis_size)
-    history = spincount(get_iterate_matrix(state)) == 2 ? (historyα, DiisHistory(n_diis_size)) : (historyα, historyα)
-    return EDIIS(n_diis_size, coefficient_threshold, history)
-end
+    # Push iterate and error to history
+    log!(lg, "pushing new iterate to history", :debug, :diis)
+    history = push_iterate(ediis.history, rp.state)
 
-function iterate(ediis::EDIIS, subreport::SubReport)
-    rp = new_subreport(subreport)
-    rp.history = compute_next_iterate(ediis, rp.source.history)
-    return ediis, rp
+
+    diis_matrix_formula(i,j) = sum(σ -> tr((history[σ].iterate[i] - history[σ].iterate[j]) *
+                                  (history[σ].density[i] - history[σ].density[j])),
+                                   spinloop(rp.state))
+
+    iterate, new_history, matrixpurgecount = compute_next_iterate(get_iterate_matrix(rp.state),
+                                                history, diis_matrix_formula,
+                                                compute_ediis_coefficients, lg,
+                                                coefficient_threshold = ediis.coefficient_threshold,
+                                                energies = history[1].energies)
+
+    for σ in spinloop(iterate)
+        # The next iteraton removes automatically removes one entry from the
+        # history. This means we need to purge an additional matrix to actually
+        # have a removal effect. Hence +1
+        if matrixpurgecount[σ] > 0
+            was_at_capacity = length(ediis.history[σ]) == ediis.history[σ].capacity
+            compensation = was_at_capacity ? 1 : 0
+            purge_from_history!(new_history[σ], matrixpurgecount[σ] + compensation)
+        end
+    end
+
+    state = update_iterate_matrix(rp.state, iterate)
+    new_ediis = EDIIS(ediis.n_diis_size, ediis.coefficient_threshold, new_history)
+
+    return new_ediis, new_subreport(new_ediis, state, lg, rp)
 end
 
 """
     Calculates coefficients
 """
-function diis_solve_coefficients(ediis::EDIIS, B::AbstractArray)
+function compute_ediis_coefficients(B::AbstractArray, lg::Logger; energies::CircularBuffer{Dict}, params...)
     m = size(B,1)
     # TODO put the energies somewhere else
-    E = map(energies -> energies["total"], ediis.history[1].energies)
+    E = map(energies -> energies["total"], energies)
 
     function f(x)
         c = x.^2/sum(x.^2)
@@ -56,88 +85,4 @@ function diis_solve_coefficients(ediis::EDIIS, B::AbstractArray)
     end
 
     return c, 0
-end
-
-"""
-    Linear System Matrix for the EDIIS accelerator.
-"""
-function diis_build_matrix(::EDIIS, history::DiisHistory)
-    @assert history.n_diis_size > 0
-    @assert history.iterate.length > 0
-
-    # B has dimension m <= history.n_diis_size, since in the
-    # beginning of the iteration we do not have the full number of
-    # previous iterates yet.
-
-    m = min(history.n_diis_size, length(history.iterate))
-
-    B = zeros(m,m)
-
-    # Since the Matrix B is symmetric, we only have to calculate
-    # the upper triagonal and can use the Julia object 'Symmetric'
-    # to fill the lower triagonal of the matrix. This also allows
-    # Julia to use optimized algorithems for symmetric matrices.
-    #
-    # The matrix B is filled in the following form:
-    #
-    # B[1,1] B[1,2] B[1,3] … B[1,m]
-    # 0      B[2,2] B[2,3] … B[2,m]
-    # 0      0      B[3,3] … B[3,m]
-    # ⋮      ⋮      ⋮      … ⋮     
-    # 0      0      0      … B[m,m]
-    #
-    # Note, that the values B[1,1] … B[1,m-1] will become the values
-    # of B[2,2] … B[2,m] in the next iteration. This means, that we effectively
-    # only have to calculate the first row and can reuse all consecutive ones.
-    #
-    # We would like to store the rows in such a way, that the storage variable
-    # can be mapped to a row immediately. Since the values are shifted to the
-    # right in each iteration and the last element is discarded it makes sense
-    # to use a Circular Buffer to hold each row.
-    #
-    # Since the last row is also discarded after the new row is calculated we
-    # use a Circular Buffer again to store the rows.
-
-    # Definition of matrix elements
-    b(i,j) = tr((history.iterate[i] - history.iterate[j]) * (history.density[i] - history.density[j]))
-
-    # Fill the first row with newly calculated values and cache them
-    # in a newly created Circular Buffer
-    newValues = CircularBuffer{Any}(history.n_diis_size)
-    map(j -> push!(newValues, b(1,j)), 1:m)
-    fill!(newValues, 0)
-
-    # Push newly calculated row to the row buffer. We use the iterationhistory to
-    # store these.
-    pushfirst!(history.iterationhistory, newValues)
-
-    # Now fill all rows with cached values,
-    # push a '0' on each buffer to prepare it for the next iteration
-    for i in 1:m
-        B[i,1:m] = history.iterationhistory[i][1:m]
-
-        # Since we want to use this buffer as the 2nd row of A in the next
-        # iteration we need the following layout of the buffer
-        #   0 A[1,1] A[1,2] … A[1,m-1]
-        # so we need to push a 0 to the beginning
-        pushfirst!(history.iterationhistory[i], 0)
-    end
-
-    return Symmetric(B)
-end
-
-function needs_error(::EDIIS)
-    false
-end
-
-function needs_density(::EDIIS)
-    true
-end
-
-"""
-    When synchronizing spins the resulting DIIS matrices have to be added
-    together but the constraint must be kept as is.
-"""
-function merge_diis_matrices_spin_blocks(::EDIIS, B1::AbstractArray, B2::AbstractArray)
-    B1 + B2
 end
