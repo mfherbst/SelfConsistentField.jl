@@ -23,5 +23,5 @@ function spinloop(obj::AbstractArray)
     1:spincount(obj)
 end
 function spinloop(state::ScfIterState)
-    1:spincount(state.iterate)
+    1:spincount(get_iterate_matrix(state))
 end

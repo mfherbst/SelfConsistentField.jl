@@ -14,8 +14,8 @@ function ConvergenceCheck(problem::ScfProblem, state::ScfIterState, lg::Logger;
                           max_energy_1e_change::Number = 5e-5, params...)
 
     function convergencecondition(convstate::ScfConvergence)
-        !(convstate.error_norm >= max_error_norm &&
-          norm(convstate.energy_change["total"]) >= max_energy_total_change &&
+        !(convstate.error_norm >= max_error_norm ||
+          norm(convstate.energy_change["total"]) >= max_energy_total_change ||
           norm(convstate.energy_change["1e"]) >= max_energy_1e_change)
     end
     ConvergenceCheck(problem, state, lg, convergencecondition)
