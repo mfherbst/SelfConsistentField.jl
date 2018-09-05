@@ -9,21 +9,45 @@ function Barrier(::ScfProblem, state::ScfIterState, lg::Logger, alg1::Algorithm,
     Barrier(alg1, alg2, switchcondition, false)
 end
 
+function notify(barrier::Barrier, subreport::SubReport)
+    algorithm = barrier.algorithm
+    future_algorithm = barrier.future_algorithm
+
+    if applicable(notify, barrier.algorithm, subreport)
+        algorithm, subreport = notify(barrier.algorithm, subreport)
+    end
+
+    if !barrier.changed
+        if applicable(notify, barrier.future_algorithm, subreport)
+            future_algorithm, subreport = notify(barrier.future_algorithm, subreport)
+        end
+    end
+    newbr = Barrier(algorithm, future_algorithm, barrier.condition, barrier.changed)
+    return newbr, new_subreport(newbr, subreport)
+end
+
 function iterate(barrier::Barrier, subreport::SubReport)
     changed = barrier.changed
     algorithm = barrier.algorithm
+    future_algorithm = barrier.future_algorithm
     lg = Logger(subreport)
 
-    if !changed && barrier.condition(subreport)
+    if !changed
+        if barrier.condition(subreport)
             changed = true
             algorithm = barrier.future_algorithm
             log!(lg, "Switching to algorithm", typeof(barrier.future_algorithm), :info, :changealgorithm)
+        else
+            if applicable(notify, barrier.future_algorithm, subreport)
+                future_algorithm, subreport = notify(barrier.future_algorithm, subreport)
+            end
+        end
     end
 
     res = iterate(algorithm, subreport)
     res == nothing && return res
 
     resalgorithm, newsubreport = res
-    newalg = Barrier(resalgorithm, barrier.future_algorithm, barrier.condition, changed)
+    newalg = Barrier(resalgorithm, future_algorithm, barrier.condition, changed)
     return newalg, new_subreport(newalg, lg, newsubreport)
 end

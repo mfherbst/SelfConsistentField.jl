@@ -20,13 +20,30 @@ function cDIIS(problem::ScfProblem, state::ScfIterState, lg::Logger;
 
     log!(lg, "setting up cDIIS", :info, :cdiis, :setup)
     historyα = DiisHistory(n_diis_size, need_error = true)
-    if spincount(get_iterate_matrix(state)) == 2
+    if !sync_spins && spincount(get_iterate_matrix(state)) == 2
         history = (historyα, DiisHistory(n_diis_size, need_error = true))
     else
         history = (historyα, historyα)
     end
 
     cDIIS(n_diis_size, sync_spins, conditioning_threshold, coefficient_threshold, history)
+end
+
+function notify(cdiis::cDIIS, rp::SubReport)
+    history = push_iterate(cdiis.history, rp.state)
+    diis_matrix_formula(i,j) = sum(σ -> tr(history[σ].error[i]' * history[σ].error[j]), spinloop(rp.state))
+
+    if !cdiis.sync_spins && spincount(rp.state) == 2
+        historyα_with_diis_matrix_entries = compute_diis_matrix(diis_matrix_formula, history[1], false)
+        historyβ_with_diis_matrix_entries = compute_diis_matrix(diis_matrix_formula, history[2], false)
+        new_history = (historyα_with_diis_matrix_entries, historyβ_with_diis_matrix_entries)
+    else
+        historyα_with_diis_matrix_entries = compute_diis_matrix(diis_matrix_formula, history[1], false)
+        new_history = (historyα_with_diis_matrix_entries, history[2])
+    end
+
+    new_cdiis = cDIIS(cdiis.n_diis_size, cdiis.sync_spins, cdiis.conditioning_threshold, cdiis.coefficient_threshold, new_history)
+    return new_cdiis, new_subreport(new_cdiis, rp)
 end
 
 function iterate(cdiis::cDIIS, rp::SubReport)
