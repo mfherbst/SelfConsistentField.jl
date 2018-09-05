@@ -28,7 +28,7 @@ function iterate(cc::ConvergenceCheck, rp::SubReport)
     !ismissing(rp.convergence) && rp.convergence.is_converged && return nothing
 
     if ismissing(cc.olditerstate)
-        return newcc, new_subreport(newcc, rp)
+        return newcc, SubReport(newcc, rp)
     else
         error_norm = compute_error_norm(rp.problem, rp.state)
         energy_change = Dict{String, Float64}()

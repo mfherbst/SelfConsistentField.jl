@@ -14,7 +14,7 @@ function iterate(::ComputeOrbitals, rp::SubReport)
     log!(lg, "New orbcoeff", orbcoeff, :debug, :computeorbitals)
 
     state = FockIterState(rp.state.fock, rp.state.error_pulay, rp.state.energies, orbcoeff, orben, rp.state.density)
-    return ComputeOrbitals(), new_subreport(ComputeOrbitals(), state, lg, rp)
+    return ComputeOrbitals(), SubReport(ComputeOrbitals(), state, lg, rp)
 end
 
 # Separate function to allow orbitals to be computed in guesses

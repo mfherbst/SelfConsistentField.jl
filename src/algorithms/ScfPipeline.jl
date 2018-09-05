@@ -22,7 +22,7 @@ function notify(sp::ScfPipeline, subreport::SubReport)
         end
     end
     newsp = ScfPipeline(new_algorithms, new_subreports)
-    return newsp, new_subreport(newsp, rp)
+    return newsp, SubReport(newsp, rp)
 end
 
 function iterate(scfpipeline::ScfPipeline, rp::SubReport)
@@ -52,5 +52,5 @@ function iterate(scfpipeline::ScfPipeline, rp::SubReport)
         end
     end
 
-    newpipe, new_subreport(newpipe, lg, subsubreport)
+    newpipe, SubReport(newpipe, lg, subsubreport)
 end

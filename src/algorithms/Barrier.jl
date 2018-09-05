@@ -23,7 +23,7 @@ function notify(barrier::Barrier, subreport::SubReport)
         end
     end
     newbr = Barrier(algorithm, future_algorithm, barrier.condition, barrier.changed)
-    return newbr, new_subreport(newbr, subreport)
+    return newbr, SubReport(newbr, subreport)
 end
 
 function iterate(barrier::Barrier, subreport::SubReport)
@@ -49,5 +49,5 @@ function iterate(barrier::Barrier, subreport::SubReport)
 
     resalgorithm, newsubreport = res
     newalg = Barrier(resalgorithm, future_algorithm, barrier.condition, changed)
-    return newalg, new_subreport(newalg, lg, newsubreport)
+    return newalg, SubReport(newalg, lg, newsubreport)
 end

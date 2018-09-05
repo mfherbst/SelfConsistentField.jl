@@ -12,7 +12,7 @@ function iterate(::ComputeDensity, rp::SubReport)
 
     state = FockIterState(rp.state.fock, rp.state.error_pulay, rp.state.energies, rp.state.orbcoeff, rp.state.orben, density)
     newalg = ComputeDensity()
-    return newalg, new_subreport(newalg, state, lg, rp)
+    return newalg, SubReport(newalg, state, lg, rp)
 end
 
 # Separate function to allow density to be computed in guesses

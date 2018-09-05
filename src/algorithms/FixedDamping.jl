@@ -22,5 +22,5 @@ function iterate(fd::FixedDamping, rp::SubReport)
     iterate = update_iterate_matrix(rp.state, ret)
 
     newdamping = FixedDamping(fd.damping, iterate)
-    return newdamping, new_subreport(newdamping, iterate, lg, rp)
+    return newdamping, SubReport(newdamping, iterate, lg, rp)
 end
