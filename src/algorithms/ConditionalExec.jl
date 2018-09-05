@@ -18,6 +18,12 @@ function iterate(ce::ConditionalExec, subreport::SubReport)
         resalg, newrp = res
         newalg = ConditionalExec(resalg, ce.condition)
         return newalg, new_subreport(newalg, lg, newrp)
+    else
+        if applicable(notify, ce.algorithm, subreport)
+            algorithm, subreport = notify(ce.algorithm, subreport)
+            newce = ConditionalExec(algorithm, ce.condition)
+            return newce, subreport
+        end
     end
     return ce, subreport
 end

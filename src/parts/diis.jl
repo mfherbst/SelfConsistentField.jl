@@ -1,7 +1,7 @@
 """
     DIIS Matrix.
 """
-function compute_diis_matrix(diis_matrix_formula::Function, history::DiisHistory)
+function compute_diis_matrix(diis_matrix_formula::Function, history::DiisHistory, compute_matrix::Bool = true)
     @assert history.n_diis_size > 0
     @assert length(history.iterate) > 0
 
@@ -11,7 +11,9 @@ function compute_diis_matrix(diis_matrix_formula::Function, history::DiisHistory
 
     m = min(history.n_diis_size, length(history.iterate))
 
-    B = zeros(m,m)
+    if compute_matrix
+        B = zeros(m,m)
+    end
 
     # Since the Matrix B is symmetric, we only have to calculate
     # the upper triagonal and can use the Julia object 'Symmetric'
@@ -56,7 +58,9 @@ function compute_diis_matrix(diis_matrix_formula::Function, history::DiisHistory
     # Now fill all rows with cached values,
     # push a '0' on each buffer to prepare it for the next iteration
     for i in 1:m
-        B[i,1:m] = new_history.iterationhistory[i][1:m]
+        if compute_matrix
+            B[i,1:m] = new_history.iterationhistory[i][1:m]
+        end
 
         # Since we want to use this buffer as the 2nd row of A in the next
         # iteration we need the following layout of the buffer
@@ -65,7 +69,11 @@ function compute_diis_matrix(diis_matrix_formula::Function, history::DiisHistory
         pushfirst!(new_history.iterationhistory[i], 0)
     end
 
-    return Symmetric(B), new_history
+    if compute_matrix
+        return Symmetric(B), new_history
+    else
+        return new_history
+    end
 end
 
 """
