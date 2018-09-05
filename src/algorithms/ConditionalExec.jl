@@ -7,6 +7,16 @@ ConditionalExec(uninit::UninitialisedAlgorithm, condition::Function; params...) 
 
 ConditionalExec(problem::ScfProblem, state::ScfIterState, lg::Logger, algorithm::Algorithm, condition::Function; params...) = ConditionalExec(algorithm, condition)
 
+function notify(ce::ConditionalExec, subreport::SubReport)
+    if applicable(notify, ce.algorithm, subreport)
+        algorithm, subreport = notify(ce.algorithm, subreport)
+        newce = ConditionalExec(algorithm, ce.condition)
+        return newce, subreport
+    else
+        return ce, subreport
+    end
+end
+
 function iterate(ce::ConditionalExec, subreport::SubReport)
     lg = Logger(subreport)
 
