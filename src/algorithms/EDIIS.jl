@@ -32,7 +32,7 @@ function notify(ediis::EDIIS, rp::SubReport)
     new_history = (historyα_with_diis_matrix_entries, history[2])
 
     new_ediis = EDIIS(ediis.n_diis_size, ediis.coefficient_threshold, new_history)
-    return new_ediis, new_subreport(new_ediis, rp)
+    return new_ediis, SubReport(new_ediis, rp)
 end
 
 function iterate(ediis::EDIIS, rp::SubReport)
@@ -67,7 +67,7 @@ function iterate(ediis::EDIIS, rp::SubReport)
     state = update_iterate_matrix(rp.state, iterate)
     new_ediis = EDIIS(ediis.n_diis_size, ediis.coefficient_threshold, new_history)
 
-    return new_ediis, new_subreport(new_ediis, state, lg, rp)
+    return new_ediis, SubReport(new_ediis, state, lg, rp)
 end
 
 """

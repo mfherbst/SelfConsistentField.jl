@@ -12,7 +12,7 @@ function iterate(::ComputeFock, rp::SubReport)
     log!(lg, "new energies", energies, :debug, :computefock)
 
     state = FockIterState(fock, error_pulay, energies, rp.state.orbcoeff, rp.state.orben, rp.state.density)
-    return ComputeFock(), new_subreport(ComputeFock(), state, lg, rp)
+    return ComputeFock(), SubReport(ComputeFock(), state, lg, rp)
 end
 
 """

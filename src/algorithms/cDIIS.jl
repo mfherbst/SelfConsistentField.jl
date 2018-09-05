@@ -43,7 +43,7 @@ function notify(cdiis::cDIIS, rp::SubReport)
     end
 
     new_cdiis = cDIIS(cdiis.n_diis_size, cdiis.sync_spins, cdiis.conditioning_threshold, cdiis.coefficient_threshold, new_history)
-    return new_cdiis, new_subreport(new_cdiis, rp)
+    return new_cdiis, SubReport(new_cdiis, rp)
 end
 
 function iterate(cdiis::cDIIS, rp::SubReport)
@@ -83,7 +83,7 @@ function iterate(cdiis::cDIIS, rp::SubReport)
     new_cdiis = cDIIS(cdiis.n_diis_size, cdiis.sync_spins,
                       cdiis.conditioning_threshold, cdiis.coefficient_threshold, new_history)
 
-    return new_cdiis, new_subreport(new_cdiis, state, lg, rp)
+    return new_cdiis, SubReport(new_cdiis, state, lg, rp)
 end
 
 """

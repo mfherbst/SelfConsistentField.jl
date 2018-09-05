@@ -40,7 +40,6 @@ include("parts/report.jl")
 include("parts/ranged_applications.jl")
 include("parts/reportmessage.jl")
 include("parts/setup.jl")
-include("parts/new_subreport.jl")
 include("parts/compute_error_norm.jl")
 
 include("algorithms/ComputeDensity.jl")

@@ -29,3 +29,15 @@ end
 Logger(loglevel::LogLevel) = Logger(loglevel, Vector{ReportMessage}())
 Logger(rp::SubReport) = Logger(rp.loglevel, Vector{ReportMessage}())
 Logger(logger::Logger) = Logger(logger.loglevel, Vector{ReportMessage}())
+
+function SubReport(algorithm::Algorithm, state::ScfIterState, logger::Logger, rp::SubReport)
+    SubReport(algorithm, rp.problem, state, rp.convergence, logger.messages, rp, logger.loglevel)
+end
+
+function SubReport(algorithm::Algorithm, logger::Logger, rp::SubReport)
+    SubReport(algorithm, rp.state, logger, rp)
+end
+
+function SubReport(algorithm::Algorithm, rp::SubReport)
+    SubReport(algorithm, Logger(rp), rp)
+end
