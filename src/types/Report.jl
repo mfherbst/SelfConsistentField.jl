@@ -9,7 +9,7 @@ mutable struct SubReport
     state::Union{Missing, ScfIterState}
     convergence::Union{Missing, ScfConvergence}
     messages::Vector{ReportMessage}
-    source::Union{Nothing, SubReport}
+    previous::Union{Nothing, SubReport}
     loglevel::LogLevel
 end
 
