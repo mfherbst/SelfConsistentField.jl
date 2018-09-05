@@ -8,8 +8,21 @@ function ScfPipeline(::ScfProblem, ::ScfIterState, lg::Logger, algorithms::Algor
     ScfPipeline(collect(algorithms), Vector{SubReport}())
 end
 
-function copy(sp::ScfPipeline)
-    ScfPipeline(map(copy, sp.algorithms), Base.copy(sp.subreports))
+ScfPipeline(uninit1::UninitialisedAlgorithm, uninit2::UninitialisedAlgorithm; params...) = invoke(ScfPipeline, Tuple{Vararg{Any,N} where N}, uninit1, uninit2; params...)
+
+function notify(sp::ScfPipeline, subreport::SubReport)
+    new_algorithms = Vector{Algorithm}()
+    new_subreports = Vector{SubReport}()
+    rp = subreport
+    for algorithm in sp.algorithms
+        if applicable(notify, ce.algorithm, subreport)
+            alg, rp = notify(algorithm, rp)
+            push!(new_algorithms, alg)
+            push!(new_subreports, rp)
+        end
+    end
+    newsp = ScfPipeline(new_algorithms, new_subreports)
+    return newsp, new_subreport(newsp, rp)
 end
 
 function iterate(scfpipeline::ScfPipeline, rp::SubReport)
