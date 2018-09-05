@@ -15,6 +15,9 @@ end
 function spincount(obj::AbstractArray)
     size(obj, ndims(obj))
 end
+function spincount(state::ScfIterState)
+    spincount(get_iterate_matrix(state))
+end
 
 """
     Iterator for indices of spins
