@@ -24,11 +24,11 @@ function copy(cb::CircularBuffer{T}) where {T}
     append!(CircularBuffer{T}(cb.capacity), cb)
 end
 
+copy(::Nothing) = nothing
+
 function copy(dh::DiisHistory)
     DiisHistory(copy(dh.iterate), copy(dh.error), copy(dh.iterationhistory), copy(dh.density), copy(dh.energies), dh.n_diis_size)
 end
-
-copy(::Nothing) = nothing
 
 """
     Pushes current iterate and error matrices to histories of both spin types
@@ -43,19 +43,25 @@ function push_iterate!(history::DiisHistory, iterate::AbstractArray, error::Unio
     end
     history.density != nothing && pushfirst!(history.density, density)
     history.energies != nothing && pushfirst!(history.energies, energies)
+    return history
 end
 
 """
     Loop over Spin submatrices and push them to the relevant DiisHistory struct
 """
 function push_iterate(history::Tuple{DiisHistory,DiisHistory}, state::ScfIterState)
-    new_history = copy(history[1]), copy(history[2])
-    map(σ -> push_iterate!(new_history[σ],
+    push_spinblock!(storage, σ) = push_iterate!(storage,
                            spin(get_iterate_matrix(state), σ),
                            spin(state.error_pulay, σ),
                            spin(state.density, σ),
-                           state.energies),
-        spinloop(get_iterate_matrix(state)))
+                           state.energies)
+
+    if spincount(state) == 1
+        new_historyα = push_spinblock!(copy(history[1]), 1)
+        new_history = new_historyα, new_historyα
+    else
+        new_history = push_spinblock!(copy(history[1]), 1), push_spinblock!(copy(history[2]), 2)
+    end
     return new_history
 end
 
@@ -64,7 +70,6 @@ end
     Warning: Assumes all buffers are of the same length.
 """
 function purge_from_history!(history::DiisHistory, count::Int)
-    @assert length(history.iterate) == length(history.iterationhistory)
     for i in 1:count
         length(history.iterate) > 0 && pop!(history.iterate)
         length(history.iterationhistory) > 0 && pop!(history.iterationhistory)

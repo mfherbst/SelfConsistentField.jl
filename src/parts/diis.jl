@@ -113,7 +113,7 @@ end
 
 function compute_next_iterate_separating_spins(iterate::AbstractArray, history::Tuple{DiisHistory,DiisHistory}, diis_matrix_spinblock_formulas::Tuple{Function,Function}, compute_diis_coefficients::Function, lg::Logger; params...)
     new_iterate = zeros(size(iterate))
-    new_history = [nothing, nothing]
+    new_history = Vector{DiisHistory}
     purgecount = (0,0)
 
     # If we are calculating the spins separately, each spin has its own coefficients.
