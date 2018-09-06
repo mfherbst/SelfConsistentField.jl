@@ -24,7 +24,7 @@ export after_errnorm, before_errnorm, between_errnorm
 export compute_guess, dump_molsturm_hdf5, load_integral_hdf5
 export break_spin_symmetry
 
-include("types/ScfIterState.jl")
+include("types/Iterate.jl")
 include("types/ScfProblem.jl")
 include("types/ScfConvergence.jl")
 include("types/Report.jl")

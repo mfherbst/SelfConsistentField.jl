@@ -5,7 +5,7 @@ mutable struct Barrier <: Algorithm
     changed::Bool
 end
 
-function Barrier(::ScfProblem, state::ScfIterState, lg::Logger, alg1::Algorithm, alg2::Algorithm, switchcondition::Function; params...)
+function Barrier(::ScfProblem, iterate::Iterate, lg::Logger, alg1::Algorithm, alg2::Algorithm, switchcondition::Function; params...)
     Barrier(alg1, alg2, switchcondition, false)
 end
 

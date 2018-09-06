@@ -5,7 +5,7 @@ end
 
 ConditionalExec(uninit::UninitialisedAlgorithm, condition::Function; params...) = invoke(ConditionalExec, Tuple{Vararg{Any,N} where N}, uninit, condition; params...)
 
-ConditionalExec(problem::ScfProblem, state::ScfIterState, lg::Logger, algorithm::Algorithm, condition::Function; params...) = ConditionalExec(algorithm, condition)
+ConditionalExec(problem::ScfProblem, iterate::Iterate, lg::Logger, algorithm::Algorithm, condition::Function; params...) = ConditionalExec(algorithm, condition)
 
 function notify(ce::ConditionalExec, subreport::StepState)
     if applicable(notify, ce.algorithm, subreport)

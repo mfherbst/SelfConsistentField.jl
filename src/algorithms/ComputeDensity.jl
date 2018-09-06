@@ -7,12 +7,12 @@ function iterate(::ComputeDensity, rp::StepState)
     lg = Logger(rp)
     log!(lg, "Computing density", :debug, :computedensity)
 
-    density = compute_density(rp.problem, rp.state.orbcoeff)
+    density = compute_density(rp.problem, rp.iterate.orbcoeff)
     log!(lg, "New density", density, :debug, :computedensity)
 
-    state = FockIterState(rp.state.fock, rp.state.error_pulay, rp.state.energies, rp.state.orbcoeff, rp.state.orben, density)
+    iterate = FockIterState(rp.iterate.fock, rp.iterate.error_pulay, rp.iterate.energies, rp.iterate.orbcoeff, rp.iterate.orben, density)
     newalg = ComputeDensity()
-    return newalg, StepState(newalg, state, lg, rp)
+    return newalg, StepState(newalg, iterate, lg, rp)
 end
 
 # Separate function to allow density to be computed in guesses

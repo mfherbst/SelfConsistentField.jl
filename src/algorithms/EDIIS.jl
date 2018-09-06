@@ -7,13 +7,13 @@ mutable struct EDIIS <: Algorithm
     history::Tuple{DiisHistory, DiisHistory}
 end
 
-function EDIIS(problem::ScfProblem, state::ScfIterState, lg::Logger;
+function EDIIS(problem::ScfProblem, iterate::Iterate, lg::Logger;
                n_diis_size = 5, coefficient_threshold = 10e-6,
                params...)
 
     log!(lg, "setting up EDIIS", :info, :ediis, :setup)
     historyα = DiisHistory(n_diis_size, need_density = true, need_energies = true)
-    if spincount(state.fock) == 2
+    if spincount(iterate.fock) == 2
         history = (historyα, DiisHistory(n_diis_size, need_density = true, need_energies = true))
     else
         history = (historyα, historyα)
@@ -23,10 +23,10 @@ function EDIIS(problem::ScfProblem, state::ScfIterState, lg::Logger;
 end
 
 function notify(ediis::EDIIS, rp::StepState)
-    history = push_iterate(ediis.history, rp.state)
+    history = push_iterate(ediis.history, rp.iterate)
     diis_matrix_formula(i,j) = sum(σ -> tr((history[σ].fock[i] - history[σ].fock[j]) *
                                   (history[σ].density[i] - history[σ].density[j])),
-                                   spinloop(rp.state))
+                                   spinloop(rp.iterate))
 
     historyα_with_diis_matrix_entries = compute_diis_matrix(diis_matrix_formula, history[1], false)
     new_history = (historyα_with_diis_matrix_entries, history[2])
@@ -40,14 +40,14 @@ function iterate(ediis::EDIIS, rp::StepState)
 
     # Push iterate and error to history
     log!(lg, "pushing new iterate to history", :debug, :diis)
-    history = push_iterate(ediis.history, rp.state)
+    history = push_iterate(ediis.history, rp.iterate)
 
 
     diis_matrix_formula(i,j) = sum(σ -> tr((history[σ].fock[i] - history[σ].fock[j]) *
                                   (history[σ].density[i] - history[σ].density[j])),
-                                   spinloop(rp.state))
+                                   spinloop(rp.iterate))
 
-    fock, new_history, matrixpurgecount = compute_next_fock(rp.state.fock,
+    fock, new_history, matrixpurgecount = compute_next_fock(rp.iterate.fock,
                                                 history, diis_matrix_formula,
                                                 compute_ediis_coefficients, lg,
                                                 coefficient_threshold = ediis.coefficient_threshold,
@@ -64,10 +64,10 @@ function iterate(ediis::EDIIS, rp::StepState)
         end
     end
 
-    state = update_fock_matrix(rp.state, fock)
+    iterate = update_fock_matrix(rp.iterate, fock)
     new_ediis = EDIIS(ediis.n_diis_size, ediis.coefficient_threshold, new_history)
 
-    return new_ediis, StepState(new_ediis, state, lg, rp)
+    return new_ediis, StepState(new_ediis, iterate, lg, rp)
 end
 
 """

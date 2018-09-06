@@ -6,13 +6,13 @@ function iterate(::ComputeFock, rp::StepState)
     lg = Logger(rp)
     log!(lg, "Calculating new fock matrix", :debug, :computefock)
 
-    fock, error_pulay, energies = compute_fock_matrix(rp.problem, rp.state.density)
+    fock, error_pulay, energies = compute_fock_matrix(rp.problem, rp.iterate.density)
     log!(lg, "new fock matrix", fock, :debug, :computefock)
     log!(lg, "new error_pulay", error_pulay, :debug, :computefock)
     log!(lg, "new energies", energies, :debug, :computefock)
 
-    state = FockIterState(fock, error_pulay, energies, rp.state.orbcoeff, rp.state.orben, rp.state.density)
-    return ComputeFock(), StepState(ComputeFock(), state, lg, rp)
+    iterate = FockIterState(fock, error_pulay, energies, rp.iterate.orbcoeff, rp.iterate.orben, rp.iterate.density)
+    return ComputeFock(), StepState(ComputeFock(), iterate, lg, rp)
 end
 
 """

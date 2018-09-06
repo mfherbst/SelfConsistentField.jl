@@ -13,14 +13,14 @@ struct cDIIS <: Algorithm
     history::Tuple{DiisHistory, DiisHistory}
 end
 
-function cDIIS(problem::ScfProblem, state::ScfIterState, lg::Logger;
+function cDIIS(problem::ScfProblem, iterate::Iterate, lg::Logger;
                n_diis_size = 5, sync_spins = true,
                conditioning_threshold = 1e-14, coefficient_threshold = 10e-6,
                params...)
 
     log!(lg, "setting up cDIIS", :info, :cdiis, :setup)
     historyα = DiisHistory(n_diis_size, need_error = true)
-    if !sync_spins && spincount(state.fock) == 2
+    if !sync_spins && spincount(iterate.fock) == 2
         history = (historyα, DiisHistory(n_diis_size, need_error = true))
     else
         history = (historyα, historyα)
@@ -30,10 +30,10 @@ function cDIIS(problem::ScfProblem, state::ScfIterState, lg::Logger;
 end
 
 function notify(cdiis::cDIIS, rp::StepState)
-    history = push_iterate(cdiis.history, rp.state)
-    diis_matrix_formula(i,j) = sum(σ -> tr(history[σ].error[i]' * history[σ].error[j]), spinloop(rp.state))
+    history = push_iterate(cdiis.history, rp.iterate)
+    diis_matrix_formula(i,j) = sum(σ -> tr(history[σ].error[i]' * history[σ].error[j]), spinloop(rp.iterate))
 
-    if !cdiis.sync_spins && spincount(rp.state) == 2
+    if !cdiis.sync_spins && spincount(rp.iterate) == 2
         historyα_with_diis_matrix_entries = compute_diis_matrix(diis_matrix_formula, history[1], false)
         historyβ_with_diis_matrix_entries = compute_diis_matrix(diis_matrix_formula, history[2], false)
         new_history = (historyα_with_diis_matrix_entries, historyβ_with_diis_matrix_entries)
@@ -51,18 +51,18 @@ function iterate(cdiis::cDIIS, rp::StepState)
 
     # Push iterate and error to history
     log!(lg, "pushing new iterate to history", :debug, :diis)
-    history = push_iterate(cdiis.history, rp.state)
+    history = push_iterate(cdiis.history, rp.iterate)
 
 
     fock_computation = compute_next_fock
-    diis_matrix_formula(i,j) = sum(σ -> tr(history[σ].error[i]' * history[σ].error[j]), spinloop(rp.state))
+    diis_matrix_formula(i,j) = sum(σ -> tr(history[σ].error[i]' * history[σ].error[j]), spinloop(rp.iterate))
 
     if !cdiis.sync_spins && (spincount(fock) == 2)
         fock_computation = compute_next_fock_separating_spins
         diis_matrix_formula = (diis_matrix_formula, diis_matrix_formula)
     end
 
-    fock, new_history, matrixpurgecount = fock_computation(rp.state.fock,
+    fock, new_history, matrixpurgecount = fock_computation(rp.iterate.fock,
                                                 history, diis_matrix_formula,
                                                 compute_cdiis_coefficients, lg,
                                                 coefficient_threshold = cdiis.coefficient_threshold,
@@ -79,11 +79,11 @@ function iterate(cdiis::cDIIS, rp::StepState)
         end
     end
 
-    state = update_fock_matrix(rp.state, fock)
+    iterate = update_fock_matrix(rp.iterate, fock)
     new_cdiis = cDIIS(cdiis.n_diis_size, cdiis.sync_spins,
                       cdiis.conditioning_threshold, cdiis.coefficient_threshold, new_history)
 
-    return new_cdiis, StepState(new_cdiis, state, lg, rp)
+    return new_cdiis, StepState(new_cdiis, iterate, lg, rp)
 end
 
 """

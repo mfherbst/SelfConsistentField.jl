@@ -15,8 +15,8 @@ end
 function spincount(obj::AbstractArray)
     size(obj, ndims(obj))
 end
-function spincount(state::ScfIterState)
-    spincount(state.fock)
+function spincount(iterate::Iterate)
+    spincount(iterate.fock)
 end
 
 """
@@ -25,6 +25,6 @@ end
 function spinloop(obj::AbstractArray)
     1:spincount(obj)
 end
-function spinloop(state::ScfIterState)
-    1:spincount(state.fock)
+function spinloop(iterate::Iterate)
+    1:spincount(iterate.fock)
 end

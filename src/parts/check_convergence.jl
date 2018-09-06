@@ -1,7 +1,7 @@
 """
 Check whether an SCF is converged
 """
-function check_convergence(olditerate::ScfIterState, newiterate::ScfIterState;
+function check_convergence(olditerate::Iterate, newiterate::Iterate;
                            max_error_norm=5e-7,
                            max_energy_total_change=1.25e-07,
                            max_energy_1e_change=5e-5,

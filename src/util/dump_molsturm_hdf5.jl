@@ -76,7 +76,7 @@ end
 
 
 """
-Dump the state returned from the run_scf
+Dump the iterate returned from the run_scf
 method, resembling the format of the molsturm HDF5
 file as of molsturm 0.0.3 as much as possible
 """
