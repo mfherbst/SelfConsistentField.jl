@@ -9,7 +9,7 @@ function Barrier(::ScfProblem, state::ScfIterState, lg::Logger, alg1::Algorithm,
     Barrier(alg1, alg2, switchcondition, false)
 end
 
-function notify(barrier::Barrier, subreport::SubReport)
+function notify(barrier::Barrier, subreport::StepState)
     algorithm = barrier.algorithm
     future_algorithm = barrier.future_algorithm
 
@@ -23,10 +23,10 @@ function notify(barrier::Barrier, subreport::SubReport)
         end
     end
     newbr = Barrier(algorithm, future_algorithm, barrier.condition, barrier.changed)
-    return newbr, SubReport(newbr, subreport)
+    return newbr, StepState(newbr, subreport)
 end
 
-function iterate(barrier::Barrier, subreport::SubReport)
+function iterate(barrier::Barrier, subreport::StepState)
     changed = barrier.changed
     algorithm = barrier.algorithm
     future_algorithm = barrier.future_algorithm
@@ -49,5 +49,5 @@ function iterate(barrier::Barrier, subreport::SubReport)
 
     resalgorithm, newsubreport = res
     newalg = Barrier(resalgorithm, future_algorithm, barrier.condition, changed)
-    return newalg, SubReport(newalg, lg, newsubreport)
+    return newalg, StepState(newalg, lg, newsubreport)
 end

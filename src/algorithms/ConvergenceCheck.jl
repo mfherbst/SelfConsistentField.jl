@@ -21,14 +21,14 @@ function ConvergenceCheck(problem::ScfProblem, state::ScfIterState, lg::Logger;
     ConvergenceCheck(problem, state, lg, convergencecondition)
 end
 
-function iterate(cc::ConvergenceCheck, rp::SubReport)
+function iterate(cc::ConvergenceCheck, rp::StepState)
     newcc = ConvergenceCheck(cc.convergencecondition, rp.state)
     lg = Logger(rp)
 
     !ismissing(rp.convergence) && rp.convergence.is_converged && return nothing
 
     if ismissing(cc.olditerstate)
-        return newcc, SubReport(newcc, rp)
+        return newcc, StepState(newcc, rp)
     else
         error_norm = compute_error_norm(rp.problem, rp.state)
         energy_change = Dict{String, Float64}()
@@ -43,6 +43,6 @@ function iterate(cc::ConvergenceCheck, rp::SubReport)
         convergence = ScfConvergence(updated_conv_data.error_norm, updated_conv_data.energy_change, is_converged)
         log!(lg, "new convergence", convergence, :debug, :convergencecheck)
 
-        return newcc, SubReport(newcc, rp.problem, rp.state, convergence, lg.messages, rp, rp.loglevel)
+        return newcc, StepState(newcc, rp.problem, rp.state, convergence, lg.messages, rp, rp.loglevel)
     end
 end

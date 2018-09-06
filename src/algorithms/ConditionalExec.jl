@@ -7,7 +7,7 @@ ConditionalExec(uninit::UninitialisedAlgorithm, condition::Function; params...) 
 
 ConditionalExec(problem::ScfProblem, state::ScfIterState, lg::Logger, algorithm::Algorithm, condition::Function; params...) = ConditionalExec(algorithm, condition)
 
-function notify(ce::ConditionalExec, subreport::SubReport)
+function notify(ce::ConditionalExec, subreport::StepState)
     if applicable(notify, ce.algorithm, subreport)
         algorithm, subreport = notify(ce.algorithm, subreport)
         newce = ConditionalExec(algorithm, ce.condition)
@@ -17,7 +17,7 @@ function notify(ce::ConditionalExec, subreport::SubReport)
     end
 end
 
-function iterate(ce::ConditionalExec, subreport::SubReport)
+function iterate(ce::ConditionalExec, subreport::StepState)
     lg = Logger(subreport)
 
     if ce.condition(subreport)
@@ -27,7 +27,7 @@ function iterate(ce::ConditionalExec, subreport::SubReport)
 
         resalg, newrp = res
         newalg = ConditionalExec(resalg, ce.condition)
-        return newalg, SubReport(newalg, lg, newrp)
+        return newalg, StepState(newalg, lg, newrp)
     else
         if applicable(notify, ce.algorithm, subreport)
             algorithm, subreport = notify(ce.algorithm, subreport)

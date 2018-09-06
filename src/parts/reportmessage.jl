@@ -1,5 +1,5 @@
 # Logging
-function log!(rp::Union{Logger, SubReport}, msg::String, data::Any, level::Symbol...)
+function log!(rp::Union{Logger, StepState}, msg::String, data::Any, level::Symbol...)
     if haskey(rp.loglevel, :stdout)
         if !isempty(level ∩ rp.loglevel[:stdout])
             if data != nothing
@@ -14,6 +14,6 @@ function log!(rp::Union{Logger, SubReport}, msg::String, data::Any, level::Symbo
     data
 end
 
-function log!(rp::Union{Logger, SubReport}, msg::String, level::Symbol...)
+function log!(rp::Union{Logger, StepState}, msg::String, level::Symbol...)
     log!(rp, msg, nothing, level...)
 end

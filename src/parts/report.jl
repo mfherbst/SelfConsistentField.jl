@@ -2,7 +2,7 @@ Base.IteratorSize(::Report) = Base.SizeUnknown()
 
 # Iteration functions for algorithms
 Base.iterate(report::Report) = (report, report.history[end])
-function Base.iterate(report::Report, lastsubreport::SubReport)
+function Base.iterate(report::Report, lastsubreport::StepState)
 
     !ismissing(lastsubreport.convergence) && lastsubreport.convergence.is_converged && return nothing
 

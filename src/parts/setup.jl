@@ -57,12 +57,12 @@ function setup(uninit::UninitialisedAlgorithm, problem::ScfProblem, initstate::S
 
     # Construct report and add already existing log messages.
     log!(lg, "setting up initial report", :debug, :firstreportsetup)
-    report = Report(problem, initstate, missing, algorithm, Vector{SubReport}(), loglevel)
+    report = Report(problem, initstate, missing, algorithm, Vector{StepState}(), loglevel)
 
     # log a fancy header
     log!(lg, @sprintf("%5s %14s %14s %14s %15s %12s", "iter", "e1e", "e2e", "etot", "scf_error", "n_applies"), :info)
 
-    subreport = SubReport(Setup(), problem, initstate, missing, lg.messages, nothing, loglevel)
+    subreport = StepState(Setup(), problem, initstate, missing, lg.messages, nothing, loglevel)
     push!(report.history, subreport)
 
     # return new report
