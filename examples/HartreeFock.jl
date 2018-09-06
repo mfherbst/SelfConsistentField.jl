@@ -136,15 +136,15 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
          Barrier(
                  EDIIS(),
                  cDIIS(),
-                 after_errnorm(10e-2)
+                 after_errnorm(1e-1)
                 ),
-         before_errnorm(10e-7)
+         before_errnorm(1e-9)
         ),
         #(
         # FixedDamping(),
         # between_errnorm(10e-2, 10e-7)
         #),
-        ConvergenceCheck(; max_error_norm = 10e-10)
+        ConvergenceCheck(; max_error_norm = 1e-10)
     )
 
     #acceleration = ediis, cediis 
