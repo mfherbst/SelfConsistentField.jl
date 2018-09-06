@@ -7,33 +7,33 @@ ConditionalExec(uninit::UninitialisedAlgorithm, condition::Function; params...) 
 
 ConditionalExec(problem::ScfProblem, iterate::Iterate, lg::Logger, algorithm::Algorithm, condition::Function; params...) = ConditionalExec(algorithm, condition)
 
-function notify(ce::ConditionalExec, subreport::StepState)
-    if applicable(notify, ce.algorithm, subreport)
-        algorithm, subreport = notify(ce.algorithm, subreport)
+function notify(ce::ConditionalExec, stepstate::StepState)
+    if applicable(notify, ce.algorithm, stepstate)
+        algorithm, stepstate = notify(ce.algorithm, stepstate)
         newce = ConditionalExec(algorithm, ce.condition)
-        return newce, subreport
+        return newce, stepstate
     else
-        return ce, subreport
+        return ce, stepstate
     end
 end
 
-function iterate(ce::ConditionalExec, subreport::StepState)
-    lg = Logger(subreport)
+function iterate(ce::ConditionalExec, stepstate::StepState)
+    lg = Logger(stepstate)
 
-    if ce.condition(subreport)
+    if ce.condition(stepstate)
         log!(lg, "applying algorithm", typeof(ce.algorithm))
-        res = iterate(ce.algorithm, subreport)
+        res = iterate(ce.algorithm, stepstate)
         isempty(res) && return res
 
         resalg, newrp = res
         newalg = ConditionalExec(resalg, ce.condition)
         return newalg, StepState(newalg, lg, newrp)
     else
-        if applicable(notify, ce.algorithm, subreport)
-            algorithm, subreport = notify(ce.algorithm, subreport)
+        if applicable(notify, ce.algorithm, stepstate)
+            algorithm, stepstate = notify(ce.algorithm, stepstate)
             newce = ConditionalExec(algorithm, ce.condition)
-            return newce, subreport
+            return newce, stepstate
         end
     end
-    return ce, subreport
+    return ce, stepstate
 end
