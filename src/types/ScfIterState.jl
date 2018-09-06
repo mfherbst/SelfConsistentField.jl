@@ -19,7 +19,7 @@ mutable struct StepState
     loglevel::LogLevel
 end
 
-mutable struct Report
+mutable struct ScfIterState
     problem::ScfProblem
     iterate::Iterate
     convergence::Union{Missing, ScfConvergence}
