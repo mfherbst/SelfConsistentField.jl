@@ -29,7 +29,7 @@ function iterate(scfpipeline::ScfPipeline, rp::StepState)
     lg = Logger(rp)
     newpipe = ScfPipeline(Vector{Algorithm}(), Vector{StepState}())
 
-    !ismissing(rp.convergence) && rp.convergence.is_converged && return nothing
+    rp.is_converged && return nothing
 
     # Copy the stepstate for the new iteration
     substepstate = rp
@@ -43,7 +43,7 @@ function iterate(scfpipeline::ScfPipeline, rp::StepState)
             push!(newpipe.algorithms, newalgorithm)
             push!(newpipe.stepstates, substepstate)
 
-            if !ismissing(substepstate.convergence) && substepstate.convergence.is_converged
+            if substepstate.is_converged
                 log!(substepstate, "Convergence reached", :debug, :scfpipeline)
                 break
             end

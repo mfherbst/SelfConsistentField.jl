@@ -13,19 +13,23 @@ mutable struct StepState
     algorithm::Union{Missing, Algorithm}
     problem::ScfProblem
     iterate::Union{Missing, Iterate}
-    convergence::Union{Missing, ScfConvergence}
+    error_norm::Float64          # Frobenius error norm of the Pulay error
+    energy_change::Dict{String, Float64}   # Change in the energy terms
+    is_converged::Bool           # Is SCF converged
     messages::Vector{LogMessage}
-    previous::Union{Nothing, StepState}
     loglevel::LogLevel
+    previous::Union{Nothing, StepState}
 end
 
 mutable struct ScfIterState
     problem::ScfProblem
     iterate::Iterate
-    convergence::Union{Missing, ScfConvergence}
+    error_norm::Float64          # Frobenius error norm of the Pulay error
+    energy_change::Dict{String, Float64}   # Change in the energy terms
+    is_converged::Bool           # Is SCF converged
     algorithm::Algorithm
-    history::Vector{StepState}
     loglevel::LogLevel
+    history::Vector{StepState}
 end
 
 struct Logger
@@ -37,7 +41,7 @@ Logger(rp::StepState) = Logger(rp.loglevel, Vector{LogMessage}())
 Logger(logger::Logger) = Logger(logger.loglevel, Vector{LogMessage}())
 
 function StepState(algorithm::Algorithm, iterate::Iterate, logger::Logger, rp::StepState)
-    StepState(algorithm, rp.problem, iterate, rp.convergence, logger.messages, rp, logger.loglevel)
+    StepState(algorithm, rp.problem, iterate, rp.error_norm, rp.energy_change, rp.is_converged, logger.messages, logger.loglevel, rp)
 end
 
 function StepState(algorithm::Algorithm, logger::Logger, rp::StepState)

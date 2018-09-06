@@ -26,16 +26,14 @@ export break_spin_symmetry
 
 include("types/Iterate.jl")
 include("types/ScfProblem.jl")
-include("types/ScfConvergence.jl")
 include("types/ScfIterState.jl")
 include("types/DiisHistory.jl")
 
 include("parts/compute_pulay_error.jl")
-include("parts/check_convergence.jl")
 include("parts/assemble_hf_problem.jl")
 include("parts/misc.jl")
 include("parts/algorithm.jl")
-include("parts/report.jl")
+include("parts/scfiterstate.jl")
 include("parts/ranged_applications.jl")
 include("parts/reportmessage.jl")
 include("parts/setup.jl")
