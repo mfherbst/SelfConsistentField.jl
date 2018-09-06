@@ -11,7 +11,7 @@ function FixedDamping(problem::ScfProblem, iterstate::ScfIterState, lg::Logger; 
     FixedDamping(damping, iterstate)
 end
 
-function iterate(fd::FixedDamping, rp::SubReport)
+function iterate(fd::FixedDamping, rp::StepState)
     lg = Logger(rp)
     log!(lg, "running FixedDamping", :debug)
 
@@ -22,5 +22,5 @@ function iterate(fd::FixedDamping, rp::SubReport)
     iterate = update_iterate_matrix(rp.state, ret)
 
     newdamping = FixedDamping(fd.damping, iterate)
-    return newdamping, SubReport(newdamping, iterate, lg, rp)
+    return newdamping, StepState(newdamping, iterate, lg, rp)
 end

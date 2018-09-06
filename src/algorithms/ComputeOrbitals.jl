@@ -5,7 +5,7 @@ copy(::ComputeOrbitals) = ComputeOrbitals()
 """
 Diagonalise the Fock matrix and return a new eigensolution
 """
-function iterate(::ComputeOrbitals, rp::SubReport)
+function iterate(::ComputeOrbitals, rp::StepState)
     lg = Logger(rp)
     log!(lg, "Computing density", :debug, :computeorbitals)
 
@@ -14,7 +14,7 @@ function iterate(::ComputeOrbitals, rp::SubReport)
     log!(lg, "New orbcoeff", orbcoeff, :debug, :computeorbitals)
 
     state = FockIterState(rp.state.fock, rp.state.error_pulay, rp.state.energies, orbcoeff, orben, rp.state.density)
-    return ComputeOrbitals(), SubReport(ComputeOrbitals(), state, lg, rp)
+    return ComputeOrbitals(), StepState(ComputeOrbitals(), state, lg, rp)
 end
 
 # Separate function to allow orbitals to be computed in guesses

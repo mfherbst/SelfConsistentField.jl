@@ -1,18 +1,18 @@
 mutable struct ScfPipeline <: Algorithm
     algorithms::Vector{Algorithm}
-    subreports::Vector{SubReport}
+    subreports::Vector{StepState}
 end
 
 function ScfPipeline(::ScfProblem, ::ScfIterState, lg::Logger, algorithms::Algorithm...)
     log!(lg, "constructing ScfPipeline", :debug, :scfpipeline, :setup)
-    ScfPipeline(collect(algorithms), Vector{SubReport}())
+    ScfPipeline(collect(algorithms), Vector{StepState}())
 end
 
 ScfPipeline(uninit1::UninitialisedAlgorithm, uninit2::UninitialisedAlgorithm; params...) = invoke(ScfPipeline, Tuple{Vararg{Any,N} where N}, uninit1, uninit2; params...)
 
-function notify(sp::ScfPipeline, subreport::SubReport)
+function notify(sp::ScfPipeline, subreport::StepState)
     new_algorithms = Vector{Algorithm}()
-    new_subreports = Vector{SubReport}()
+    new_subreports = Vector{StepState}()
     rp = subreport
     for algorithm in sp.algorithms
         if applicable(notify, ce.algorithm, subreport)
@@ -22,12 +22,12 @@ function notify(sp::ScfPipeline, subreport::SubReport)
         end
     end
     newsp = ScfPipeline(new_algorithms, new_subreports)
-    return newsp, SubReport(newsp, rp)
+    return newsp, StepState(newsp, rp)
 end
 
-function iterate(scfpipeline::ScfPipeline, rp::SubReport)
+function iterate(scfpipeline::ScfPipeline, rp::StepState)
     lg = Logger(rp)
-    newpipe = ScfPipeline(Vector{Algorithm}(), Vector{SubReport}())
+    newpipe = ScfPipeline(Vector{Algorithm}(), Vector{StepState}())
 
     !ismissing(rp.convergence) && rp.convergence.is_converged && return nothing
 
@@ -52,5 +52,5 @@ function iterate(scfpipeline::ScfPipeline, rp::SubReport)
         end
     end
 
-    newpipe, SubReport(newpipe, lg, subsubreport)
+    newpipe, StepState(newpipe, lg, subsubreport)
 end

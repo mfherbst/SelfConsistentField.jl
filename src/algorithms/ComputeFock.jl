@@ -2,7 +2,7 @@ struct ComputeFock <: Algorithm end
 
 copy(::ComputeFock) = ComputeFock()
 
-function iterate(::ComputeFock, rp::SubReport)
+function iterate(::ComputeFock, rp::StepState)
     lg = Logger(rp)
     log!(lg, "Calculating new fock matrix", :debug, :computefock)
 
@@ -12,7 +12,7 @@ function iterate(::ComputeFock, rp::SubReport)
     log!(lg, "new energies", energies, :debug, :computefock)
 
     state = FockIterState(fock, error_pulay, energies, rp.state.orbcoeff, rp.state.orben, rp.state.density)
-    return ComputeFock(), SubReport(ComputeFock(), state, lg, rp)
+    return ComputeFock(), StepState(ComputeFock(), state, lg, rp)
 end
 
 """

@@ -22,7 +22,7 @@ function EDIIS(problem::ScfProblem, state::ScfIterState, lg::Logger;
     EDIIS(n_diis_size, coefficient_threshold, history)
 end
 
-function notify(ediis::EDIIS, rp::SubReport)
+function notify(ediis::EDIIS, rp::StepState)
     history = push_iterate(ediis.history, rp.state)
     diis_matrix_formula(i,j) = sum(σ -> tr((history[σ].iterate[i] - history[σ].iterate[j]) *
                                   (history[σ].density[i] - history[σ].density[j])),
@@ -32,10 +32,10 @@ function notify(ediis::EDIIS, rp::SubReport)
     new_history = (historyα_with_diis_matrix_entries, history[2])
 
     new_ediis = EDIIS(ediis.n_diis_size, ediis.coefficient_threshold, new_history)
-    return new_ediis, SubReport(new_ediis, rp)
+    return new_ediis, StepState(new_ediis, rp)
 end
 
-function iterate(ediis::EDIIS, rp::SubReport)
+function iterate(ediis::EDIIS, rp::StepState)
     lg = Logger(rp)
 
     # Push iterate and error to history
@@ -67,7 +67,7 @@ function iterate(ediis::EDIIS, rp::SubReport)
     state = update_iterate_matrix(rp.state, iterate)
     new_ediis = EDIIS(ediis.n_diis_size, ediis.coefficient_threshold, new_history)
 
-    return new_ediis, SubReport(new_ediis, state, lg, rp)
+    return new_ediis, StepState(new_ediis, state, lg, rp)
 end
 
 """
