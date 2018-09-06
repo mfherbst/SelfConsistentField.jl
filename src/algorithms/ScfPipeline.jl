@@ -1,6 +1,6 @@
 mutable struct ScfPipeline <: Algorithm
     algorithms::Vector{Algorithm}
-    subreports::Vector{StepState}
+    stepstates::Vector{StepState}
 end
 
 function ScfPipeline(::ScfProblem, ::Iterate, lg::Logger, algorithms::Algorithm...)
@@ -10,18 +10,18 @@ end
 
 ScfPipeline(uninit1::UninitialisedAlgorithm, uninit2::UninitialisedAlgorithm; params...) = invoke(ScfPipeline, Tuple{Vararg{Any,N} where N}, uninit1, uninit2; params...)
 
-function notify(sp::ScfPipeline, subreport::StepState)
+function notify(sp::ScfPipeline, stepstate::StepState)
     new_algorithms = Vector{Algorithm}()
-    new_subreports = Vector{StepState}()
-    rp = subreport
+    new_stepstates = Vector{StepState}()
+    rp = stepstate
     for algorithm in sp.algorithms
-        if applicable(notify, ce.algorithm, subreport)
+        if applicable(notify, ce.algorithm, stepstate)
             alg, rp = notify(algorithm, rp)
             push!(new_algorithms, alg)
-            push!(new_subreports, rp)
+            push!(new_stepstates, rp)
         end
     end
-    newsp = ScfPipeline(new_algorithms, new_subreports)
+    newsp = ScfPipeline(new_algorithms, new_stepstates)
     return newsp, StepState(newsp, rp)
 end
 
@@ -31,20 +31,20 @@ function iterate(scfpipeline::ScfPipeline, rp::StepState)
 
     !ismissing(rp.convergence) && rp.convergence.is_converged && return nothing
 
-    # Copy the subreport for the new iteration
-    subsubreport = rp
+    # Copy the stepstate for the new iteration
+    substepstate = rp
     for algorithm in scfpipeline.algorithms
         log!(lg, "Applying Algorithm ", typeof(algorithm), :debug)
-        res = iterate(algorithm, subsubreport)
+        res = iterate(algorithm, substepstate)
 
         # if the iteration is not done, reset done variable
         if res != nothing
-            newalgorithm, subsubreport = res
+            newalgorithm, substepstate = res
             push!(newpipe.algorithms, newalgorithm)
-            push!(newpipe.subreports, subsubreport)
+            push!(newpipe.stepstates, substepstate)
 
-            if !ismissing(subsubreport.convergence) && subsubreport.convergence.is_converged
-                log!(subsubreport, "Convergence reached", :debug, :scfpipeline)
+            if !ismissing(substepstate.convergence) && substepstate.convergence.is_converged
+                log!(substepstate, "Convergence reached", :debug, :scfpipeline)
                 break
             end
         else
@@ -52,5 +52,5 @@ function iterate(scfpipeline::ScfPipeline, rp::StepState)
         end
     end
 
-    newpipe, StepState(newpipe, lg, subsubreport)
+    newpipe, StepState(newpipe, lg, substepstate)
 end
