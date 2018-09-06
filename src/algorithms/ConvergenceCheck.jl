@@ -1,13 +1,13 @@
 struct ConvergenceCheck <: Algorithm
     convergencecondition::Function
-    olditeriterate::Union{Missing, Iterate}
+    olditerate::Union{Missing, Iterate}
 end
 
 function ConvergenceCheck(::ScfProblem, iterate::Iterate, lg::Logger, convergencecondition::Function; store_initial_matrix = true, params...)
     ConvergenceCheck(convergencecondition, store_initial_matrix ? iterate : missing)
 end
 
-copy(cc::ConvergenceCheck) = ConvergenceCheck(cc.convergencecondition, cc.olditeriterate)
+copy(cc::ConvergenceCheck) = ConvergenceCheck(cc.convergencecondition, cc.olditerate)
 
 function ConvergenceCheck(problem::ScfProblem, iterate::Iterate, lg::Logger;
                           max_error_norm::Number = 5e-7, max_energy_total_change::Number = 1.25e-07,
@@ -27,12 +27,12 @@ function iterate(cc::ConvergenceCheck, rp::StepState)
 
     !ismissing(rp.convergence) && rp.convergence.is_converged && return nothing
 
-    if ismissing(cc.olditeriterate)
+    if ismissing(cc.olditerate)
         return newcc, StepState(newcc, rp)
     else
         error_norm = compute_error_norm(rp.problem, rp.iterate)
         energy_change = Dict{String, Float64}()
-        for (key, oval) in cc.olditeriterate.energies
+        for (key, oval) in cc.olditerate.energies
             nval = rp.iterate.energies[key]
             val = nval - oval
             energy_change[key] = val
