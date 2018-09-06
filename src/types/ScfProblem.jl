@@ -48,12 +48,6 @@ struct ScfProblem
     # TODO Probably some factorisation of the overlap
     #      matrix is sensible, since it is used on the RHS a lot.
 
-    # -----------------------
-    # Functions
-
-    # computes next fock, error_pulay and energies
-    compute_fock_matrix::Function
-
     """
     Setup an ScfProblem taking some system-specific data as well as the terms
     of the problem matrix.
