@@ -20,7 +20,7 @@ function cDIIS(problem::ScfProblem, state::ScfIterState, lg::Logger;
 
     log!(lg, "setting up cDIIS", :info, :cdiis, :setup)
     historyα = DiisHistory(n_diis_size, need_error = true)
-    if !sync_spins && spincount(get_iterate_matrix(state)) == 2
+    if !sync_spins && spincount(state.fock) == 2
         history = (historyα, DiisHistory(n_diis_size, need_error = true))
     else
         history = (historyα, historyα)
@@ -54,32 +54,32 @@ function iterate(cdiis::cDIIS, rp::StepState)
     history = push_iterate(cdiis.history, rp.state)
 
 
-    iterate_computation = compute_next_iterate
+    fock_computation = compute_next_fock
     diis_matrix_formula(i,j) = sum(σ -> tr(history[σ].error[i]' * history[σ].error[j]), spinloop(rp.state))
 
-    if !cdiis.sync_spins && (spincount(iterate) == 2)
-        iterate_computation = compute_next_iterate_separating_spins
+    if !cdiis.sync_spins && (spincount(fock) == 2)
+        fock_computation = compute_next_fock_separating_spins
         diis_matrix_formula = (diis_matrix_formula, diis_matrix_formula)
     end
 
-    iterate, new_history, matrixpurgecount = iterate_computation(get_iterate_matrix(rp.state),
+    fock, new_history, matrixpurgecount = fock_computation(rp.state.fock,
                                                 history, diis_matrix_formula,
                                                 compute_cdiis_coefficients, lg,
                                                 coefficient_threshold = cdiis.coefficient_threshold,
                                                 conditioning_threshold = cdiis.conditioning_threshold)
 
-    for σ in spinloop(iterate)
+    for σ in spinloop(fock)
         # The next iteraton removes automatically removes one entry from the
         # history. This means we need to purge an additional matrix to actually
         # have a removal effect. Hence +1
         if matrixpurgecount[σ] > 0
-            was_at_capacity = length(cdiis.history[σ].iterate) == cdiis.history[σ].iterate.capacity
+            was_at_capacity = length(cdiis.history[σ].fock) == cdiis.history[σ].fock.capacity
             compensation = was_at_capacity ? 1 : 0
             purge_from_history!(new_history[σ], matrixpurgecount[σ] + compensation)
         end
     end
 
-    state = update_iterate_matrix(rp.state, iterate)
+    state = update_fock_matrix(rp.state, fock)
     new_cdiis = cDIIS(cdiis.n_diis_size, cdiis.sync_spins,
                       cdiis.conditioning_threshold, cdiis.coefficient_threshold, new_history)
 
@@ -108,7 +108,7 @@ function compute_cdiis_coefficients(B::AbstractArray, lg::Logger; conditioning_t
     # coefficients. The current fock matrix should be used without
     # modifications.
     if all( .! mask)
-        log!(lg, "All eigenvalues are under the threshold! Skipping iterate modification…", :cdiis, :info)
+        log!(lg, "All eigenvalues are under the threshold! Skipping fock modification…", :cdiis, :info)
         c = zeros(size(A, 1) - 1)
         c[1] = 1
         return c

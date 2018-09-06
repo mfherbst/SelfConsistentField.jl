@@ -13,7 +13,7 @@ function EDIIS(problem::ScfProblem, state::ScfIterState, lg::Logger;
 
     log!(lg, "setting up EDIIS", :info, :ediis, :setup)
     historyα = DiisHistory(n_diis_size, need_density = true, need_energies = true)
-    if spincount(get_iterate_matrix(state)) == 2
+    if spincount(state.fock) == 2
         history = (historyα, DiisHistory(n_diis_size, need_density = true, need_energies = true))
     else
         history = (historyα, historyα)
@@ -24,7 +24,7 @@ end
 
 function notify(ediis::EDIIS, rp::StepState)
     history = push_iterate(ediis.history, rp.state)
-    diis_matrix_formula(i,j) = sum(σ -> tr((history[σ].iterate[i] - history[σ].iterate[j]) *
+    diis_matrix_formula(i,j) = sum(σ -> tr((history[σ].fock[i] - history[σ].fock[j]) *
                                   (history[σ].density[i] - history[σ].density[j])),
                                    spinloop(rp.state))
 
@@ -43,17 +43,17 @@ function iterate(ediis::EDIIS, rp::StepState)
     history = push_iterate(ediis.history, rp.state)
 
 
-    diis_matrix_formula(i,j) = sum(σ -> tr((history[σ].iterate[i] - history[σ].iterate[j]) *
+    diis_matrix_formula(i,j) = sum(σ -> tr((history[σ].fock[i] - history[σ].fock[j]) *
                                   (history[σ].density[i] - history[σ].density[j])),
                                    spinloop(rp.state))
 
-    iterate, new_history, matrixpurgecount = compute_next_iterate(get_iterate_matrix(rp.state),
+    fock, new_history, matrixpurgecount = compute_next_fock(rp.state.fock,
                                                 history, diis_matrix_formula,
                                                 compute_ediis_coefficients, lg,
                                                 coefficient_threshold = ediis.coefficient_threshold,
                                                 energies = history[1].energies)
 
-    for σ in spinloop(iterate)
+    for σ in spinloop(fock)
         # The next iteraton removes automatically removes one entry from the
         # history. This means we need to purge an additional matrix to actually
         # have a removal effect. Hence +1
@@ -64,7 +64,7 @@ function iterate(ediis::EDIIS, rp::StepState)
         end
     end
 
-    state = update_iterate_matrix(rp.state, iterate)
+    state = update_fock_matrix(rp.state, fock)
     new_ediis = EDIIS(ediis.n_diis_size, ediis.coefficient_threshold, new_history)
 
     return new_ediis, StepState(new_ediis, state, lg, rp)
