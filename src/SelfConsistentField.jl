@@ -7,7 +7,7 @@ using Optim
 using Printf
 
 # Types
-export ScfProblem, TwoElectronBuilder, JKBuilderFromTensor
+export ScfProblem, ScfIterState, TwoElectronBuilder, JKBuilderFromTensor
 
 # Algorithms
 export ScfPipeline, ConditionalExec, ConvergenceCheck,
