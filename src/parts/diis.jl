@@ -3,13 +3,13 @@
 """
 function compute_diis_matrix(diis_matrix_formula::Function, history::DiisHistory, compute_matrix::Bool = true)
     @assert history.n_diis_size > 0
-    @assert length(history.iterate) > 0
+    @assert length(history.fock) > 0
 
     # B has dimension m <= history.n_diis_size, since in the
     # beginning of the iteration we do not have the full number of
-    # previous iterates yet.
+    # previous focks yet.
 
-    m = min(history.n_diis_size, length(history.iterate))
+    m = min(history.n_diis_size, length(history.fock))
 
     if compute_matrix
         B = zeros(m,m)
@@ -102,52 +102,52 @@ function build_diis_linear_system_matrix(B::AbstractArray)
     return Symmetric(A)
 end
 
-function compute_next_iterate(iterate::AbstractArray, history::Tuple{DiisHistory,DiisHistory}, diis_matrix_formula::Function, compute_diis_coefficients::Function, lg::Logger; params...)
-    # To save memory we store only new_iterate once and pass views of it to the
+function compute_next_fock(fock::AbstractArray, history::Tuple{DiisHistory,DiisHistory}, diis_matrix_formula::Function, compute_diis_coefficients::Function, lg::Logger; params...)
+    # To save memory we store only new_fock once and pass views of it to the
     # computation routines that write directly into the view.
-    new_iterate = zeros(size(iterate))
+    new_fock = zeros(size(fock))
     purgecount = 0
 
     # Only store precaclulated values for the DIIS matrix in the first spinblock history.
     diis_matrix, new_historyα = compute_diis_matrix(diis_matrix_formula, history[1])
     c, purgecount = compute_diis_coefficients(diis_matrix, lg; params...)
     new_history = (new_historyα, history[2])
-    for σ in spinloop(iterate)
-        apply_diis_coefficients!(new_history[σ], c, spin(new_iterate, σ); params...)
+    for σ in spinloop(fock)
+        apply_diis_coefficients!(new_history[σ], c, spin(new_fock, σ); params...)
     end
 
-    return new_iterate, new_history, (purgecount, purgecount)
+    return new_fock, new_history, (purgecount, purgecount)
 end
 
-function compute_next_iterate_separating_spins(iterate::AbstractArray, history::Tuple{DiisHistory,DiisHistory}, diis_matrix_spinblock_formulas::Tuple{Function,Function}, compute_diis_coefficients::Function, lg::Logger; params...)
-    new_iterate = zeros(size(iterate))
+function compute_next_fock_separating_spins(fock::AbstractArray, history::Tuple{DiisHistory,DiisHistory}, diis_matrix_spinblock_formulas::Tuple{Function,Function}, compute_diis_coefficients::Function, lg::Logger; params...)
+    new_fock = zeros(size(fock))
     new_history = Vector{DiisHistory}
     purgecount = (0,0)
 
     # If we are calculating the spins separately, each spin has its own coefficients.
-    for σ in spinloop(iterate)
+    for σ in spinloop(fock)
         diis_matrix, new_history[σ] = compute_diis_matrix(diis_matrix_formula, history[σ])
         c, purgecount[σ] = compute_diis_coefficients(diis_matrix; params...)
-        apply_diis_coefficients!(new_history[σ], c, spin(new_iterate, σ); params...)
+        apply_diis_coefficients!(new_history[σ], c, spin(new_fock, σ); params...)
     end
-    return new_iterate, collect(new_history), purgecount
+    return new_fock, collect(new_history), purgecount
 end
 
 """
-    Computes new iterate and stores it in the passed argument "iterate"
+    Computes new fock and stores it in the passed argument "fock"
 """
-function apply_diis_coefficients!(history::DiisHistory, c::AbstractArray, iterate::SubArray; coefficient_threshold::Float64, params...)
+function apply_diis_coefficients!(history::DiisHistory, c::AbstractArray, fock::SubArray; coefficient_threshold::Float64, params...)
     @assert length(c) > 0
     # add very small coefficients to the largest one but always use the most
-    # recent iterate matrix regardless of the coefficient value
+    # recent fock matrix regardless of the coefficient value
     mask = map(x -> norm(x) >= coefficient_threshold, c)
     mask[1] = true
     c[argmax(c)] += sum(c[ .! mask])
 
     # Construct new Fock Matrix using obtained coefficients
-    # and write it to the given iterate matrix. We assume, that
-    # iterate is a matrix of zeros.
+    # and write it to the given fock matrix. We assume, that
+    # fock is a matrix of zeros.
     for i in eachindex(c)[mask]
-        iterate .+= c[i] * history.iterate[i]
+        fock .+= c[i] * history.fock[i]
     end
 end

@@ -25,11 +25,7 @@ mutable struct FockIterState <: ScfIterState
     density::Union{Nothing,AbstractArray}
 end
 
-function get_iterate_matrix(iterate::FockIterState)
-    return iterate.fock
-end
-
-function update_iterate_matrix(iterate::FockIterState, fock::AbstractArray)
+function update_fock_matrix(iterate::FockIterState, fock::AbstractArray)
     return FockIterState(fock, iterate.error_pulay, iterate.energies,
                          iterate.orbcoeff, iterate.orben, iterate.density)
 end

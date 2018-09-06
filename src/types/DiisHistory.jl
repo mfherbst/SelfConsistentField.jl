@@ -2,7 +2,7 @@
     Container type for the history of one spin type for cDIIS
 """
 struct DiisHistory
-    iterate::CircularBuffer
+    fock::CircularBuffer
     error::Union{Nothing,CircularBuffer}
     iterationhistory::CircularBuffer
     density::Union{Nothing,CircularBuffer}
@@ -27,19 +27,19 @@ end
 copy(::Nothing) = nothing
 
 function copy(dh::DiisHistory)
-    DiisHistory(copy(dh.iterate), copy(dh.error), copy(dh.iterationhistory), copy(dh.density), copy(dh.energies), dh.n_diis_size)
+    DiisHistory(copy(dh.fock), copy(dh.error), copy(dh.iterationhistory), copy(dh.density), copy(dh.energies), dh.n_diis_size)
 end
 
 """
-    Pushes current iterate and error matrices to histories of both spin types
+    Pushes current fock and error matrices to histories of both spin types
 """
-function push_iterate!(history::DiisHistory, iterate::AbstractArray, error::Union{AbstractArray,Nothing} = nothing, density::Union{AbstractArray,Nothing} = nothing, energies::Union{Dict,Nothing} = nothing)
-    pushfirst!(history.iterate,  iterate)
+function push_iterate!(history::DiisHistory, fock::AbstractArray, error::Union{AbstractArray,Nothing} = nothing, density::Union{AbstractArray,Nothing} = nothing, energies::Union{Dict,Nothing} = nothing)
+    pushfirst!(history.fock,  fock)
 
-    # Push difference to previous iterate if no error given
+    # Push difference to previous fock if no error given
     if history.error != nothing
         pushfirst!(history.error,
-                   error == nothing ? iterate - history.iterate[1] : error)
+                   error == nothing ? fock - history.fock[1] : error)
     end
     history.density != nothing && pushfirst!(history.density, density)
     history.energies != nothing && pushfirst!(history.energies, energies)
@@ -51,7 +51,7 @@ end
 """
 function push_iterate(history::Tuple{DiisHistory,DiisHistory}, state::ScfIterState)
     push_spinblock!(storage, σ) = push_iterate!(storage,
-                           spin(get_iterate_matrix(state), σ),
+                           spin(state.fock, σ),
                            spin(state.error_pulay, σ),
                            spin(state.density, σ),
                            state.energies)
@@ -71,7 +71,7 @@ end
 """
 function purge_from_history!(history::DiisHistory, count::Int)
     for i in 1:count
-        length(history.iterate) > 0 && pop!(history.iterate)
+        length(history.fock) > 0 && pop!(history.fock)
         length(history.iterationhistory) > 0 && pop!(history.iterationhistory)
         history.error != nothing && length(history.error) > 0 && pop!(history.error)
         history.density != nothing && length(history.density) > 0 && pop!(history.density)
