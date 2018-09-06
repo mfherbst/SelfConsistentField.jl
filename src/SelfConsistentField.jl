@@ -27,7 +27,6 @@ export break_spin_symmetry
 include("types/ScfIterState.jl")
 include("types/ScfProblem.jl")
 include("types/ScfConvergence.jl")
-include("types/ReportMessage.jl")
 include("types/Report.jl")
 include("types/DiisHistory.jl")
 
