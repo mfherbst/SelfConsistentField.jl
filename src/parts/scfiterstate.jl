@@ -19,13 +19,14 @@ function Base.iterate(report::ScfIterState, laststepstate::StepState)
     (algorithm, stepstate) = iterresult
     push!(report.history, stepstate)
 
-    # log results
-    log!(stepstate, @sprintf(" %4d %14.8f %14.8f %14.8f %16.9g %12d", length(report.history) - 1, report.iterate.energies["1e"], report.iterate.energies["2e"], report.iterate.energies["total"], !ismissing(report.convergence) ? report.convergence.error_norm : NaN, NaN), :info)
-
     # update iterate reference in report
     report.algorithm = stepstate.algorithm
     report.iterate = stepstate.iterate
     report.convergence = stepstate.convergence
+
+    # log results
+    log!(stepstate, @sprintf(" %4d %14.8f %14.8f %14.8f %16.9g %12d", length(report.history) - 1, report.iterate.energies["1e"], report.iterate.energies["2e"], report.iterate.energies["total"], !ismissing(report.convergence) ? report.convergence.error_norm : NaN, NaN), :info)
+
     return (report, stepstate)
 end
 
