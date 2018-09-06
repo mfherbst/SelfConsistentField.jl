@@ -49,14 +49,14 @@ end
 """
     Loop over Spin submatrices and push them to the relevant DiisHistory struct
 """
-function push_iterate(history::Tuple{DiisHistory,DiisHistory}, state::ScfIterState)
+function push_iterate(history::Tuple{DiisHistory,DiisHistory}, iterate::Iterate)
     push_spinblock!(storage, σ) = push_iterate!(storage,
-                           spin(state.fock, σ),
-                           spin(state.error_pulay, σ),
-                           spin(state.density, σ),
-                           state.energies)
+                           spin(iterate.fock, σ),
+                           spin(iterate.error_pulay, σ),
+                           spin(iterate.density, σ),
+                           iterate.energies)
 
-    if spincount(state) == 1
+    if spincount(iterate) == 1
         new_historyα = push_spinblock!(copy(history[1]), 1)
         new_history = new_historyα, new_historyα
     else

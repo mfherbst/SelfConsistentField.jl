@@ -7,11 +7,11 @@ end
 
 """
     Create UninitializedAlgorithm given an Algorithm without full initalisation
-    information. This is the case if no problem and state was given to the
+    information. This is the case if no problem and iterate was given to the
     constructor. UninitialisedAlgorithm instances are promoted to Algorithm
     using the initalise function called by
 
-    setup(::UninitialisedAlgorithm, ::ScfProblem, ::ScfIterState)
+    setup(::UninitialisedAlgorithm, ::ScfProblem, ::Iterate)
 """
 function (new_algorithm_type::Type{T})(args...; params...) where {T<:Algorithm}
     function conv_to_alg(i)
@@ -25,23 +25,23 @@ function (new_algorithm_type::Type{T})(args...; params...) where {T<:Algorithm}
                       new_algorithm_type(newargs...; params...)
 end
 
-function initialise(uninit::UninitialisedAlgorithm, problem::ScfProblem, initstate::ScfIterState, lg::Logger; global_params...)
+function initialise(uninit::UninitialisedAlgorithm, problem::ScfProblem, inititerate::Iterate, lg::Logger; global_params...)
     function init_uninitialised(i)
         !(uninit.args[i] isa UninitialisedAlgorithm) ? uninit.args[i] : begin
                 initlg = Logger(lg)
-                algorithm = initialise(uninit.args[i], problem, initstate, initlg; global_params..., uninit.args[i].params...)
+                algorithm = initialise(uninit.args[i], problem, inititerate, initlg; global_params..., uninit.args[i].params...)
                 log!(lg, "Logger", initlg, :debug, :initreport)
                 algorithm
             end
     end
     initialised_args = ntuple(init_uninitialised, length(uninit.args))
     log!(lg, "algorithm type to be expanded", uninit.algorithmtype, :debug)
-    uninit.algorithmtype(problem, initstate, lg, initialised_args...; global_params..., uninit.params...)
+    uninit.algorithmtype(problem, inititerate, lg, initialised_args...; global_params..., uninit.params...)
 end
 
 struct Setup <: Algorithm end
 
-function setup(uninit::UninitialisedAlgorithm, problem::ScfProblem, initstate::ScfIterState;
+function setup(uninit::UninitialisedAlgorithm, problem::ScfProblem, inititerate::Iterate;
                     params::Parameters = Parameters(), loglevel::LogLevel)
 
     lg = Logger(loglevel)
@@ -49,7 +49,7 @@ function setup(uninit::UninitialisedAlgorithm, problem::ScfProblem, initstate::S
     
     # Run initial algorithm configuration
     initlg = Logger(loglevel)
-    algorithm = initialise(uninit, problem, initstate, initlg; params...)
+    algorithm = initialise(uninit, problem, inititerate, initlg; params...)
     if algorithm isa UninitialisedAlgorithm
         error("Some algorithm could not be initialised using its constructor.")
     end
@@ -57,12 +57,12 @@ function setup(uninit::UninitialisedAlgorithm, problem::ScfProblem, initstate::S
 
     # Construct report and add already existing log messages.
     log!(lg, "setting up initial report", :debug, :firstreportsetup)
-    report = Report(problem, initstate, missing, algorithm, Vector{StepState}(), loglevel)
+    report = Report(problem, inititerate, missing, algorithm, Vector{StepState}(), loglevel)
 
     # log a fancy header
     log!(lg, @sprintf("%5s %14s %14s %14s %15s %12s", "iter", "e1e", "e2e", "etot", "scf_error", "n_applies"), :info)
 
-    subreport = StepState(Setup(), problem, initstate, missing, lg.messages, nothing, loglevel)
+    subreport = StepState(Setup(), problem, inititerate, missing, lg.messages, nothing, loglevel)
     push!(report.history, subreport)
 
     # return new report
@@ -71,9 +71,9 @@ end
 
 
 """
-    Builds initial iteration state using given guess density.
+    Builds initial iteration iterate using given guess density.
 """
-function build_initial_state(problem::ScfProblem, guess_density::AbstractArray)
+function build_initial_iterate(problem::ScfProblem, guess_density::AbstractArray)
     fock, error_pulay, energies = compute_fock_matrix(problem, guess_density)
     FockIterState(fock, error_pulay, energies, nothing, nothing, guess_density)
 end
@@ -83,5 +83,5 @@ end
 """
 function setup(uninit::UninitialisedAlgorithm, problem::ScfProblem, guess_density::AbstractArray;
                     params::Parameters = Parameters(), loglevel::LogLevel)
-    setup(uninit, problem, build_initial_state(problem, guess_density), params = params, loglevel = loglevel)
+    setup(uninit, problem, build_initial_iterate(problem, guess_density), params = params, loglevel = loglevel)
 end

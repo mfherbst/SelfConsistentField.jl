@@ -1,3 +1,3 @@
-function compute_error_norm(::ScfProblem, state::ScfIterState)
-    norm(reshape(state.error_pulay, :))
+function compute_error_norm(::ScfProblem, iterate::Iterate)
+    norm(reshape(iterate.error_pulay, :))
 end

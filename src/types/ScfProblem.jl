@@ -1,4 +1,4 @@
-"""Type for the state objects helping to build two-electron terms"""
+"""Type for the iterate objects helping to build two-electron terms"""
 abstract type TwoElectronBuilder end
 
 function add_2e_term!(out::AbstractArray,

@@ -1,15 +1,15 @@
 struct ConvergenceCheck <: Algorithm
     convergencecondition::Function
-    olditerstate::Union{Missing, ScfIterState}
+    olditeriterate::Union{Missing, Iterate}
 end
 
-function ConvergenceCheck(::ScfProblem, state::ScfIterState, lg::Logger, convergencecondition::Function; store_initial_matrix = true, params...)
-    ConvergenceCheck(convergencecondition, store_initial_matrix ? state : missing)
+function ConvergenceCheck(::ScfProblem, iterate::Iterate, lg::Logger, convergencecondition::Function; store_initial_matrix = true, params...)
+    ConvergenceCheck(convergencecondition, store_initial_matrix ? iterate : missing)
 end
 
-copy(cc::ConvergenceCheck) = ConvergenceCheck(cc.convergencecondition, cc.olditerstate)
+copy(cc::ConvergenceCheck) = ConvergenceCheck(cc.convergencecondition, cc.olditeriterate)
 
-function ConvergenceCheck(problem::ScfProblem, state::ScfIterState, lg::Logger;
+function ConvergenceCheck(problem::ScfProblem, iterate::Iterate, lg::Logger;
                           max_error_norm::Number = 5e-7, max_energy_total_change::Number = 1.25e-07,
                           max_energy_1e_change::Number = 5e-5, params...)
 
@@ -18,22 +18,22 @@ function ConvergenceCheck(problem::ScfProblem, state::ScfIterState, lg::Logger;
           norm(convstate.energy_change["total"]) >= max_energy_total_change ||
           norm(convstate.energy_change["1e"]) >= max_energy_1e_change)
     end
-    ConvergenceCheck(problem, state, lg, convergencecondition)
+    ConvergenceCheck(problem, iterate, lg, convergencecondition)
 end
 
 function iterate(cc::ConvergenceCheck, rp::StepState)
-    newcc = ConvergenceCheck(cc.convergencecondition, rp.state)
+    newcc = ConvergenceCheck(cc.convergencecondition, rp.iterate)
     lg = Logger(rp)
 
     !ismissing(rp.convergence) && rp.convergence.is_converged && return nothing
 
-    if ismissing(cc.olditerstate)
+    if ismissing(cc.olditeriterate)
         return newcc, StepState(newcc, rp)
     else
-        error_norm = compute_error_norm(rp.problem, rp.state)
+        error_norm = compute_error_norm(rp.problem, rp.iterate)
         energy_change = Dict{String, Float64}()
-        for (key, oval) in cc.olditerstate.energies
-            nval = rp.state.energies[key]
+        for (key, oval) in cc.olditeriterate.energies
+            nval = rp.iterate.energies[key]
             val = nval - oval
             energy_change[key] = val
         end
@@ -43,6 +43,6 @@ function iterate(cc::ConvergenceCheck, rp::StepState)
         convergence = ScfConvergence(updated_conv_data.error_norm, updated_conv_data.energy_change, is_converged)
         log!(lg, "new convergence", convergence, :debug, :convergencecheck)
 
-        return newcc, StepState(newcc, rp.problem, rp.state, convergence, lg.messages, rp, rp.loglevel)
+        return newcc, StepState(newcc, rp.problem, rp.iterate, convergence, lg.messages, rp, rp.loglevel)
     end
 end

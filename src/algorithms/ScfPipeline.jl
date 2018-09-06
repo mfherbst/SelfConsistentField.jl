@@ -3,7 +3,7 @@ mutable struct ScfPipeline <: Algorithm
     subreports::Vector{StepState}
 end
 
-function ScfPipeline(::ScfProblem, ::ScfIterState, lg::Logger, algorithms::Algorithm...)
+function ScfPipeline(::ScfProblem, ::Iterate, lg::Logger, algorithms::Algorithm...)
     log!(lg, "constructing ScfPipeline", :debug, :scfpipeline, :setup)
     ScfPipeline(collect(algorithms), Vector{StepState}())
 end

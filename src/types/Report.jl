@@ -12,7 +12,7 @@ LogMessage(msg::String) = LogMessage(msg, nothing)
 mutable struct StepState
     algorithm::Union{Missing, Algorithm}
     problem::ScfProblem
-    state::Union{Missing, ScfIterState}
+    iterate::Union{Missing, Iterate}
     convergence::Union{Missing, ScfConvergence}
     messages::Vector{LogMessage}
     previous::Union{Nothing, StepState}
@@ -21,7 +21,7 @@ end
 
 mutable struct Report
     problem::ScfProblem
-    state::ScfIterState
+    iterate::Iterate
     convergence::Union{Missing, ScfConvergence}
     algorithm::Algorithm
     history::Vector{StepState}
@@ -36,12 +36,12 @@ Logger(loglevel::LogLevel) = Logger(loglevel, Vector{LogMessage}())
 Logger(rp::StepState) = Logger(rp.loglevel, Vector{LogMessage}())
 Logger(logger::Logger) = Logger(logger.loglevel, Vector{LogMessage}())
 
-function StepState(algorithm::Algorithm, state::ScfIterState, logger::Logger, rp::StepState)
-    StepState(algorithm, rp.problem, state, rp.convergence, logger.messages, rp, logger.loglevel)
+function StepState(algorithm::Algorithm, iterate::Iterate, logger::Logger, rp::StepState)
+    StepState(algorithm, rp.problem, iterate, rp.convergence, logger.messages, rp, logger.loglevel)
 end
 
 function StepState(algorithm::Algorithm, logger::Logger, rp::StepState)
-    StepState(algorithm, rp.state, logger, rp)
+    StepState(algorithm, rp.iterate, logger, rp)
 end
 
 function StepState(algorithm::Algorithm, rp::StepState)

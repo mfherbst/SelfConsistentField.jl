@@ -9,12 +9,12 @@ function iterate(::ComputeOrbitals, rp::StepState)
     lg = Logger(rp)
     log!(lg, "Computing density", :debug, :computeorbitals)
 
-    orben, orbcoeff = compute_orbitals(rp.problem, rp.state.fock)
+    orben, orbcoeff = compute_orbitals(rp.problem, rp.iterate.fock)
     log!(lg, "New orben", orben, :debug, :computeorbitals)
     log!(lg, "New orbcoeff", orbcoeff, :debug, :computeorbitals)
 
-    state = FockIterState(rp.state.fock, rp.state.error_pulay, rp.state.energies, orbcoeff, orben, rp.state.density)
-    return ComputeOrbitals(), StepState(ComputeOrbitals(), state, lg, rp)
+    iterate = FockIterState(rp.iterate.fock, rp.iterate.error_pulay, rp.iterate.energies, orbcoeff, orben, rp.iterate.density)
+    return ComputeOrbitals(), StepState(ComputeOrbitals(), iterate, lg, rp)
 end
 
 # Separate function to allow orbitals to be computed in guesses

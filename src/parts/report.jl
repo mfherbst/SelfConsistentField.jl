@@ -20,11 +20,11 @@ function Base.iterate(report::Report, lastsubreport::StepState)
     push!(report.history, subreport)
 
     # log results
-    log!(subreport, @sprintf(" %4d %14.8f %14.8f %14.8f %16.9g %12d", length(report.history) - 1, report.state.energies["1e"], report.state.energies["2e"], report.state.energies["total"], !ismissing(report.convergence) ? report.convergence.error_norm : NaN, NaN), :info)
+    log!(subreport, @sprintf(" %4d %14.8f %14.8f %14.8f %16.9g %12d", length(report.history) - 1, report.iterate.energies["1e"], report.iterate.energies["2e"], report.iterate.energies["total"], !ismissing(report.convergence) ? report.convergence.error_norm : NaN, NaN), :info)
 
-    # update state reference in report
+    # update iterate reference in report
     report.algorithm = subreport.algorithm
-    report.state = subreport.state
+    report.iterate = subreport.iterate
     report.convergence = subreport.convergence
     return (report, subreport)
 end
@@ -34,12 +34,12 @@ function Base.convert(::Type{T}, rp::Report) where {T <: AbstractDict}
          "n_iter"=>length(rp.history) - 1,
          "n_applies"=>NaN,
          "problem"=>rp.problem,
-         "orben"=>rp.state.orben,
-         "orbcoeff"=>rp.state.orbcoeff,
-         "density"=>compute_density(rp.problem,rp.state.orbcoeff),
+         "orben"=>rp.iterate.orben,
+         "orbcoeff"=>rp.iterate.orbcoeff,
+         "density"=>compute_density(rp.problem,rp.iterate.orbcoeff),
          "converged"=> rp.convergence.is_converged,
-         "fock"=>rp.state.fock,
-         "energies"=>rp.state.energies,
+         "fock"=>rp.iterate.fock,
+         "energies"=>rp.iterate.energies,
          "error_norm"=>rp.convergence.error_norm,
          "energy_change"=>rp.convergence.energy_change
     )

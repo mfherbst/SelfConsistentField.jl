@@ -2,12 +2,12 @@
 Type describing the SCF quantity to be iterated by the SCF map
 (e.g. Fock matrix)
 """
-abstract type ScfIterState end
+abstract type Iterate end
 
 """
-Struct of the state if the Fock matrix is iterated
+Struct of the iterate if the Fock matrix is iterated
 """
-mutable struct FockIterState <: ScfIterState
+mutable struct FockIterState <: Iterate
     # Fock or Kohn-Sham matrix
     fock::AbstractArray
 
