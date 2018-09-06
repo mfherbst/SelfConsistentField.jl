@@ -57,7 +57,7 @@ function setup(uninit::UninitialisedAlgorithm, problem::ScfProblem, inititerate:
 
     # Construct report and add already existing log messages.
     log!(lg, "setting up initial report", :debug, :firstreportsetup)
-    report = Report(problem, inititerate, missing, algorithm, Vector{StepState}(), loglevel)
+    report = ScfIterState(problem, inititerate, missing, algorithm, Vector{StepState}(), loglevel)
 
     # log a fancy header
     log!(lg, @sprintf("%5s %14s %14s %14s %15s %12s", "iter", "e1e", "e2e", "etot", "scf_error", "n_applies"), :info)

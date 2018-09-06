@@ -1,8 +1,8 @@
-Base.IteratorSize(::Report) = Base.SizeUnknown()
+Base.IteratorSize(::ScfIterState) = Base.SizeUnknown()
 
 # Iteration functions for algorithms
-Base.iterate(report::Report) = (report, report.history[end])
-function Base.iterate(report::Report, lastsubreport::StepState)
+Base.iterate(report::ScfIterState) = (report, report.history[end])
+function Base.iterate(report::ScfIterState, lastsubreport::StepState)
 
     !ismissing(lastsubreport.convergence) && lastsubreport.convergence.is_converged && return nothing
 
@@ -29,7 +29,7 @@ function Base.iterate(report::Report, lastsubreport::StepState)
     return (report, subreport)
 end
 
-function Base.convert(::Type{T}, rp::Report) where {T <: AbstractDict}
+function Base.convert(::Type{T}, rp::ScfIterState) where {T <: AbstractDict}
     Dict(
          "n_iter"=>length(rp.history) - 1,
          "n_applies"=>NaN,
