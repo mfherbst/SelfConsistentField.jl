@@ -7,8 +7,8 @@ struct FixedDamping <: Algorithm
     prev_iterate::Union{Nothing,Iterate}  # Previous iterate
 end
 
-function FixedDamping(problem::ScfProblem, iteriterate::Iterate, lg::Logger; damping=0.4, params...)
-    FixedDamping(damping, iteriterate)
+function FixedDamping(problem::ScfProblem, iterate::Iterate, lg::Logger; damping=0.4, params...)
+    FixedDamping(damping, iterate)
 end
 
 function iterate(fd::FixedDamping, rp::StepState)
