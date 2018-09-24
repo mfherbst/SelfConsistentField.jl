@@ -112,7 +112,7 @@ function hartree_fock(intfile; restricted=nothing, ofile=nothing)
     end
     guess_density = compute_guess(problem, system.coords, system.atom_numbers;
                                   method = guess_method)
-    if ! problem.restricted && is_closed_shell(problem)
+    if ! is_closed_shell(problem)
         break_spin_symmetry(guess_density)
     end
 
