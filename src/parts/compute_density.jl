@@ -13,12 +13,23 @@ function compute_density(problem::ScfProblem, orbcoeff::Array)
     occupancies = (zeros(eltype(orbcoeff), n_orb),
                    zeros(eltype(orbcoeff), n_orb))
 
-    # Hard-coded oxygen case
-    occupancies[1][1] = 1.0; occupancies[2][1] = 1.0  # 1s
-    occupancies[1][2] = 1.0; occupancies[2][2] = 1.0  # 2s
-    occupancies[1][3] = 1.0; occupancies[2][3] = 1/3  # 2p
-    occupancies[1][4] = 1.0; occupancies[2][4] = 1/3  # 2p
-    occupancies[1][5] = 1.0; occupancies[2][5] = 1/3  # 2p
+    if n_elec[1] == 5 && n_elec[2] == 3
+        println("Detected oxygen")
+        occupancies[1][1] = 1.0; occupancies[2][1] = 1.0  # 1s
+        occupancies[1][2] = 1.0; occupancies[2][2] = 1.0  # 2s
+        occupancies[1][3] = 1.0; occupancies[2][3] = 1/3  # 2p
+        occupancies[1][4] = 1.0; occupancies[2][4] = 1/3  # 2p
+        occupancies[1][5] = 1.0; occupancies[2][5] = 1/3  # 2p
+    elseif n_elec[1] == 4 && n_elec[2] == 2
+        println("Detected carbon")
+        occupancies[1][1] = 1.0; occupancies[2][1] = 1.0  # 1s
+        occupancies[1][2] = 1.0; occupancies[2][2] = 1.0  # 2s
+        occupancies[1][3] = 2/3; occupancies[2][3] = 0    # 2p
+        occupancies[1][4] = 2/3; occupancies[2][4] = 0    # 2p
+        occupancies[1][5] = 2/3; occupancies[2][5] = 0    # 2p
+    else
+        error("Do not know this case")
+    end
 
     #occupancies = ((occupancies[1] + occupancies[2]) / 2, )
 
