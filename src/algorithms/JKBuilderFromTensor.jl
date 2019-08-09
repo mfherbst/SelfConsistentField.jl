@@ -42,6 +42,8 @@ function add_2e_term!(out::AbstractArray,
         Db = view(density, :, :, 2)
         @tensor begin
             J[μ,ν] := eri[α,β,μ,ν] * Dtot[α,β]
+        end
+        @tensor begin
             JKa[μ,ν] := J[μ,ν] - eri[μ,β,α,ν] * Da[α,β]
             JKb[μ,ν] := J[μ,ν] - eri[μ,β,α,ν] * Db[α,β]
         end
